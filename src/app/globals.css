@@ -1,0 +1,305 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ================================================
+   BECHAPRA - Sistema de Análisis Contable
+   Estilos globales basados en branding
+   ================================================ */
+
+@layer base {
+  :root {
+    --bechapra-primary: #0057d9;
+    --bechapra-primary-dark: #0057d9;
+    --bechapra-secondary: #004ab7;
+    --bechapra-accent: #00A3E0;
+    --bechapra-light: #E8F4FC;
+    --bechapra-surface: #FFFFFF;
+    --sidebar-width: 280px;
+    --sidebar-collapsed-width: 80px;
+    --header-height: 72px;
+  }
+
+  * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #F5FAFD 0%, #E8F4FC 50%, #F0F7FC 100%);
+    color: #1A365D;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Scrollbar personalizada estilo Bechapra */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #E8F4FC;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #004ab7, #0057d9);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #004ab7, #0057d9);
+  }
+
+  /* Selection */
+  ::selection {
+    background: rgba(0, 74, 183, 0.84);
+    color: #004ab7;
+  }
+}
+
+@layer components {
+  /* Card base style */
+  .card-bechapra {
+    @apply bg-white rounded-bechapra-md shadow-card border border-bechapra-border-light;
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .card-bechapra:hover {
+    @apply shadow-card-hover border-bechapra-border;
+    transform: translateY(-2px);
+  }
+
+  /* Button primary */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2;
+    @apply px-6 py-3 rounded-bechapra font-semibold text-white;
+    @apply bg-gradient-to-r from-bechapra-primary to-bechapra-primary-dark;
+    @apply shadow-button transition-all duration-200;
+  }
+
+  .btn-primary:hover {
+    @apply shadow-button-hover;
+    transform: translateY(-1px);
+    background: linear-gradient(135deg, #004ab7 0%, #0057d9 100%);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-primary:disabled {
+    @apply opacity-50 cursor-not-allowed;
+    transform: none !important;
+  }
+
+  /* Button secondary */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2;
+    @apply px-6 py-3 rounded-bechapra font-semibold;
+    @apply text-bechapra-primary bg-bechapra-light;
+    @apply border-2 border-bechapra-border;
+    @apply transition-all duration-200;
+  }
+
+  .btn-secondary:hover {
+    @apply bg-white border-bechapra-primary;
+    @apply shadow-bechapra-sm;
+  }
+
+  /* Button ghost */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2;
+    @apply px-4 py-2 rounded-bechapra font-medium;
+    @apply text-bechapra-text-secondary bg-transparent;
+    @apply transition-all duration-200;
+  }
+
+  .btn-ghost:hover {
+    @apply bg-bechapra-light text-bechapra-primary;
+  }
+
+  /* Input base */
+  .input-bechapra {
+    @apply w-full px-4 py-3 rounded-bechapra;
+    @apply bg-white border-2 border-bechapra-border;
+    @apply text-bechapra-text-primary placeholder:text-bechapra-text-muted;
+    @apply transition-all duration-200;
+    @apply focus:outline-none focus:border-bechapra-primary focus:ring-4 focus:ring-bechapra-primary/10;
+  }
+
+  /* Badge styles */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .badge-primary {
+    @apply bg-bechapra-light text-bechapra-primary;
+  }
+
+  .badge-success {
+    @apply bg-bechapra-success-light text-green-700;
+  }
+
+  .badge-warning {
+    @apply bg-bechapra-warning-light text-amber-700;
+  }
+
+  .badge-error {
+    @apply bg-bechapra-error-light text-red-700;
+  }
+
+  /* Sidebar navigation link */
+  .nav-link {
+    @apply flex items-center gap-3 px-4 py-3 rounded-bechapra;
+    @apply text-bechapra-text-secondary font-medium;
+    @apply transition-all duration-200;
+  }
+
+  .nav-link:hover {
+    @apply bg-bechapra-light text-bechapra-primary;
+  }
+
+  .nav-link.active {
+    @apply bg-gradient-to-r from-bechapra-primary to-bechapra-primary-dark;
+    @apply text-white shadow-button;
+  }
+
+  /* Section title */
+  .section-title {
+    @apply text-2xl font-bold text-bechapra-text-primary;
+    @apply relative pb-3;
+  }
+
+  .section-title::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-16 h-1;
+    @apply bg-gradient-to-r from-bechapra-primary to-bechapra-accent;
+    @apply rounded-full;
+  }
+
+  /* Upload zone */
+  .upload-zone {
+    @apply relative border-2 border-dashed border-bechapra-border rounded-bechapra-lg;
+    @apply bg-gradient-to-br from-white to-bechapra-light-3;
+    @apply p-8 text-center cursor-pointer;
+    @apply transition-all duration-300;
+  }
+
+  .upload-zone:hover,
+  .upload-zone.dragover {
+    @apply border-bechapra-primary bg-bechapra-light;
+    @apply shadow-bechapra;
+    transform: scale(1.01);
+  }
+
+  /* Module card */
+  .module-card {
+    @apply relative overflow-hidden rounded-bechapra-lg;
+    @apply bg-white border border-bechapra-border-light;
+    @apply shadow-card transition-all duration-300;
+  }
+
+  .module-card:hover {
+    @apply shadow-card-hover border-bechapra-primary/30;
+    transform: translateY(-4px);
+  }
+
+  .module-card-header {
+    @apply flex items-center gap-4 p-5;
+    @apply border-b border-bechapra-border-light;
+  }
+
+  .module-card-icon {
+    @apply w-12 h-12 rounded-bechapra flex items-center justify-center;
+    @apply bg-gradient-to-br from-bechapra-primary to-bechapra-primary-dark;
+    @apply text-white text-xl;
+  }
+
+  /* Table styles */
+  .table-bechapra {
+    @apply w-full border-collapse;
+  }
+
+  .table-bechapra th {
+    @apply px-4 py-3 text-left text-sm font-semibold;
+    @apply text-bechapra-text-secondary bg-bechapra-light;
+    @apply border-b-2 border-bechapra-border;
+  }
+
+  .table-bechapra td {
+    @apply px-4 py-3 text-sm text-bechapra-text-primary;
+    @apply border-b border-bechapra-border-light;
+  }
+
+  .table-bechapra tbody tr:hover {
+    @apply bg-bechapra-light-3;
+  }
+
+  /* Loading skeleton */
+  .skeleton {
+    @apply animate-pulse bg-gradient-to-r from-bechapra-light via-white to-bechapra-light;
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Status indicator */
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .status-dot.online {
+    @apply bg-green-500;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  }
+
+  .status-dot.pending {
+    @apply bg-amber-500;
+    animation: pulseSoft 2s ease-in-out infinite;
+  }
+
+  .status-dot.offline {
+    @apply bg-gray-400;
+  }
+}
+
+@layer utilities {
+  /* Gradient text */
+  .text-gradient-bechapra {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #0055A5 0%, #00A3E0 100%);
+  }
+
+  /* Glass effect */
+  .glass-effect {
+    @apply bg-white/80 backdrop-blur-md;
+    @apply border border-white/20;
+  }
+
+  /* Stagger animation delays */
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+  .stagger-5 { animation-delay: 0.5s; }
+  
+  /* Hide scrollbar but allow scroll */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

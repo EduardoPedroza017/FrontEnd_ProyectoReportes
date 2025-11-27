@@ -1,0 +1,17 @@
+# Dependencias
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Builds
+dist/
+build/
+
+# Archivos de entorno
+.env
+.env.local
+
+# macOS
+.DS_Store

@@ -26,8 +26,14 @@ import {
   Fuel,
   CreditCard,
   FileCheck,
-  Calendar
+  Calendar,
+  LucideIcon
 } from 'lucide-react'
+
+import { api } from '../../lib/api'
+import Link from 'next/link'
+import router from 'next/dist/shared/lib/router/router'
+import { useRouter } from 'next/dist/client/components/navigation'
 
 // Tipos
 interface FileWithPreview extends File {
@@ -38,7 +44,7 @@ interface ModuleData {
   id: number
   name: string
   subtitle: string
-  icon: React.ComponentType<{ size?: number; className?: string }>
+  icon: LucideIcon
   status: 'ready' | 'coming' | 'disabled'
   acceptedTypes: string[]
   fileSlots: FileSlot[]
@@ -273,12 +279,174 @@ export default function NuevoReportePage() {
 
   const processAllModules = async () => {
     setIsProcessing(true)
-    // Simular procesamiento
-    await new Promise(resolve => setTimeout(resolve, 3000))
-    setIsProcessing(false)
-    // Aquí iría la lógica real de envío al backend
+    
+    try {
+      const results: any = {}
+      
+      // Verificar que el backend esté disponible
+      try {
+        await api.healthCheck()
+      } catch (error) {
+        alert('⚠️ El backend no está disponible. Por favor inicia el servidor FastAPI.')
+        setIsProcessing(false)
+        return
+      }
+      
+      // Procesar cada módulo con archivos
+      for (const module of modules) {
+        const fileCount = getModuleFileCount(module)
+        if (fileCount === 0) continue
+        
+        try {
+          switch (module.id) {
+            case 1: // Estados de Cuenta
+              if (module.files.length > 0) {
+                results.modulo1 = await api.uploadEstadosCuenta(module.files)
+              }
+              break
+              
+            case 3: // XML
+              const excelSlot = module.fileSlots.find(s => s.id === 'excel')
+              const emitidosSlot = module.fileSlots.find(s => s.id === 'zip-emitidos')
+              const recibidosSlot = module.fileSlots.find(s => s.id === 'zip-recibidos')
+              
+              if (excelSlot?.file && emitidosSlot?.file && recibidosSlot?.file) {
+                results.modulo3 = await api.uploadXML(
+                  excelSlot.file as File,
+                  emitidosSlot.file as File,
+                  recibidosSlot.file as File
+                )
+              }
+              break
+              
+            case 4: // SUA
+              const suaFiles: any = {}
+              module.fileSlots.forEach(slot => {
+                if (slot.file) {
+                  suaFiles[slot.id.replace('sua-', '')] = slot.file
+                }
+              })
+              
+              if (Object.keys(suaFiles).length > 0) {
+                results.modulo4 = await api.uploadSUA(suaFiles)
+              }
+              break
+          }
+        } catch (error: any) {
+          console.error(`Error procesando módulo ${module.id}:`, error)
+          alert(`Error en ${module.name}: ${error.message}`)
+        }
+      }
+      
+      console.log('Resultados de procesamiento:', results)
+
+        // Guardar en sessionStorage
+        sessionStorage.setItem('ultimo_reporte', JSON.stringify(results))
+
+        setProcessingResults(results)
+        setShowResults(true)
+
+      
+      // Aquí puedes redirigir al usuario a ver los resultados
+      // router.push('/reportes/historial')
+      
+    } catch (error: any) {
+      console.error('Error en procesamiento:', error)
+      alert(`Error general: ${error.message}`)
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
+
+// ✨ AGREGAR AQUÍ - ANTES DE UploadArea
+  const ResultsSection = () => {
+    const router = useRouter()
+    if (!showResults || !processingResults) return null
+    
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl max-w-4xl w-full max-h-[80vh] overflow-auto p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-bechapra-text-primary">
+              📊 Resultados del Procesamiento
+            </h2>
+            <button
+              onClick={() => {
+                router.push('/reportes/ver')
+              }}
+              className="flex-1 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Ver Reporte Completo
+            </button>
+          </div>
+          
+          <div className="space-y-4">
+            {Object.entries(processingResults).map(([key, value]: [string, any]) => (
+              <div key={key} className="border border-bechapra-border rounded-lg p-4">
+                <h3 className="font-semibold text-lg mb-2 text-bechapra-primary">
+                  {key === 'modulo1' && '📄 Estados de Cuenta'}
+                  {key === 'modulo3' && '📋 XML - Facturas'}
+                  {key === 'modulo4' && '👥 SUA - Seguro Social'}
+                </h3>
+                
+                {value.success ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-green-600">
+                      <CheckCircle2 size={20} />
+                      <span>Procesado correctamente</span>
+                    </div>
+                    
+                    {key === 'modulo1' && value.por_hoja && (
+                      <div className="mt-2 text-sm">
+                        <p className="font-medium">Hojas procesadas:</p>
+                        <ul className="list-disc list-inside">
+                          {Object.keys(value.por_hoja).map((hoja: string) => (
+                            <li key={hoja}>{hoja}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {key === 'modulo3' && value.resumen && (
+                      <div className="mt-2 text-sm">
+                        <p>Total emitidas: {value.resumen.total_emitidas}</p>
+                        <p>Total recibidas: {value.resumen.total_recibidas}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-red-600">
+                    <AlertCircle size={20} />
+                    <span>Error: {value.error || 'Error desconocido'}</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-6 flex gap-3">
+            <button
+              onClick={() => setShowResults(false)}
+              className="flex-1 py-3 bg-bechapra-primary text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Cerrar
+            </button>
+            <Link
+              href="/reportes/historial"
+              className="flex-1 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-center"
+            >
+              Ver Reportes
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+
+  const [processingResults, setProcessingResults] = useState<any>(null)
+  const [showResults, setShowResults] = useState(false)
   // Componente de área de subida genérica
   const UploadArea = ({ 
     moduleId, 
@@ -395,6 +563,9 @@ export default function NuevoReportePage() {
       </div>
     )
   }
+
+
+  
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -557,6 +728,8 @@ export default function NuevoReportePage() {
                   </div>
                 </div>
               </div>
+              {/* ✨ AGREGAR ESTA LÍNEA AQUÍ */}
+              <ResultsSection />
             </div>
           )
         })}

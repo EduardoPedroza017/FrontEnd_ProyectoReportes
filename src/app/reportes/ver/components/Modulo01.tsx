@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { ChevronDown, ChevronUp, FileText, TrendingUp, Filter } from 'lucide-react'
+import { FileText, TrendingUp, TrendingDown, BarChart3, DollarSign, PieChart, Filter } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import {
   Chart as ChartJS,
@@ -217,31 +217,64 @@ export default function Modulo01({ data }: Modulo01Props) {
   return (
     <div className="space-y-6">
       {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg p-6 text-white">
-          <div className="text-2xl mb-2">💰</div>
-          <div className="text-sm font-medium opacity-90">Depósitos</div>
-          <div className="text-2xl font-bold mt-1">{formatCurrency(consolidado.totalDepositos)}</div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="text-blue-600" size={20} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-blue-600 mb-1">Depósitos</p>
+              <p className="text-xl font-bold text-blue-700 truncate">{formatCurrency(consolidado.totalDepositos)}</p>
+              <p className="text-xs text-blue-600 mt-1">Entrada de efectivo</p>
+            </div>
+          </div>
         </div>
 
-        <div className="bg-gradient-to-br from-red-500 to-rose-600 rounded-lg p-6 text-white">
-          <div className="text-2xl mb-2">💸</div>
-          <div className="text-sm font-medium opacity-90">Retiros</div>
-          <div className="text-2xl font-bold mt-1">{formatCurrency(consolidado.totalRetiros)}</div>
+        <div className="bg-red-50 rounded-lg p-4 border border-red-100">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+              <TrendingDown className="text-red-600" size={20} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-red-600 mb-1">Retiros</p>
+              <p className="text-xl font-bold text-red-700 truncate">{formatCurrency(consolidado.totalRetiros)}</p>
+              <p className="text-xs text-red-600 mt-1">Salida de efectivo</p>
+            </div>
+          </div>
         </div>
 
-        <div className={`bg-gradient-to-br ${consolidado.flujoNeto >= 0 ? 'from-blue-500 to-cyan-600' : 'from-orange-500 to-red-600'} rounded-lg p-6 text-white`}>
-          <div className="text-2xl mb-2">{consolidado.flujoNeto >= 0 ? '📈' : '📉'}</div>
-          <div className="text-sm font-medium opacity-90">Flujo Neto</div>
-          <div className="text-2xl font-bold mt-1">{formatCurrency(Math.abs(consolidado.flujoNeto))}</div>
-          <div className="text-xs mt-1 opacity-75">{consolidado.flujoNeto >= 0 ? 'Positivo' : 'Negativo'}</div>
+        <div className={`${consolidado.flujoNeto >= 0 ? 'bg-green-50 border-green-100' : 'bg-amber-50 border-amber-100'} rounded-lg p-4 border`}>
+          <div className="flex items-start gap-3">
+            <div className={`w-10 h-10 rounded-lg ${consolidado.flujoNeto >= 0 ? 'bg-green-100' : 'bg-amber-100'} flex items-center justify-center flex-shrink-0`}>
+              <BarChart3 className={consolidado.flujoNeto >= 0 ? 'text-green-600' : 'text-amber-600'} size={20} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className={`text-xs ${consolidado.flujoNeto >= 0 ? 'text-green-600' : 'text-amber-600'} mb-1`}>Flujo Neto</p>
+              <p className={`text-xl font-bold ${consolidado.flujoNeto >= 0 ? 'text-green-700' : 'text-amber-700'} truncate`}>
+                {formatCurrency(Math.abs(consolidado.flujoNeto))}
+              </p>
+              <p className={`text-xs ${consolidado.flujoNeto >= 0 ? 'text-green-600' : 'text-amber-600'} mt-1`}>
+                {consolidado.flujoNeto >= 0 ? 'Positivo' : 'Negativo'}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg p-6 text-white">
-          <div className="text-2xl mb-2">💳</div>
-          <div className="text-sm font-medium opacity-90">Comisiones</div>
-          <div className="text-2xl font-bold mt-1">{formatCurrency(consolidado.totalComisiones)}</div>
+        <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+              <DollarSign className="text-purple-600" size={20} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-purple-600 mb-1">Comisiones</p>
+              <p className="text-xl font-bold text-purple-700 truncate">{formatCurrency(consolidado.totalComisiones)}</p>
+              <p className="text-xs text-purple-600 mt-1">Costo bancario</p>
+            </div>
+          </div>
         </div>
+
       </div>
 
       {/* Tabs */}

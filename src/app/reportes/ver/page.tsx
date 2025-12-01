@@ -81,16 +81,6 @@ export default function VerReportePage() {
     }
 
     cargarReporte()
-
-    // Limpiar sessionStorage cuando el componente se desmonte
-    // (pero solo si se cargaron datos desde sessionStorage)
-    return () => {
-      const sessionData = sessionStorage.getItem('reporteData')
-      if (sessionData && !reporteId) {
-        console.log('🧹 Limpiando sessionStorage al salir de la página')
-        sessionStorage.removeItem('reporteData')
-      }
-    }
   }, [reporteId, searchParams])
 
   const descargarReportePDF = async () => {

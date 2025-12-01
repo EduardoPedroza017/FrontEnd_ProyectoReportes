@@ -121,12 +121,29 @@ export interface Modulo3Data {
   }
   emitidas: Factura[]
   recibidas: Factura[]
-  categorias_emitidas: { [key: string]: CategoriaFactura }
-  categorias_recibidas: { [key: string]: CategoriaFactura }
+  categorias_emitidas: CategoriasResponse
+    categorias_recibidas: CategoriasResponse
   complementos_emitidos?: Complemento[]
   complementos_recibidos?: Complemento[]
   tiene_complementos_emitidos?: boolean
   tiene_complementos_recibidos?: boolean
+
+  predicciones?: {
+    emitidas?: Array<{
+      mes: string
+      monto: number
+      cantidad: number
+    }>
+    recibidas?: Array<{
+      mes: string
+      monto: number
+      cantidad: number
+    }>
+    balance?: Array<{
+      mes: string
+      monto: number
+    }>
+  }
 }
 
 export interface Factura {
@@ -144,8 +161,21 @@ export interface Factura {
 }
 
 export interface CategoriaFactura {
+  categoria?: string
+  nombre?: string
   cantidad: number
   monto: number
+  clave?: string
+  descripcion?: string
+}
+
+export interface CategoriasResponse {
+  general?: CategoriaFactura[]
+  grupo?: CategoriaFactura[]
+  detallado?: CategoriaFactura[]
+  top_10_general?: CategoriaFactura[]
+  top_10_grupo?: CategoriaFactura[]
+  top_10_detallado?: CategoriaFactura[]
 }
 
 export interface Complemento {

@@ -306,18 +306,27 @@ export default function NuevoReportePage() {
               break
               
             case 3: // XML
-              const excelSlot = module.fileSlots.find(s => s.id === 'excel')
-              const emitidosSlot = module.fileSlots.find(s => s.id === 'zip-emitidos')
-              const recibidosSlot = module.fileSlots.find(s => s.id === 'zip-recibidos')
-              
-              if (excelSlot?.file && emitidosSlot?.file && recibidosSlot?.file) {
-                results.modulo3 = await api.uploadXML(
-                  excelSlot.file as File,
-                  emitidosSlot.file as File,
-                  recibidosSlot.file as File
-                )
-              }
-              break
+            const excelSlot = module.fileSlots.find(s => s.id === 'excel')
+            const emitidosSlot = module.fileSlots.find(s => s.id === 'emitidos')
+            const recibidosSlot = module.fileSlots.find(s => s.id === 'recibidos')
+            
+            // ✅ AGREGAR ESTOS LOGS
+            console.log('🔍 Módulo 3 - excelSlot:', excelSlot)
+            console.log('🔍 Módulo 3 - emitidosSlot:', emitidosSlot)
+            console.log('🔍 Módulo 3 - recibidosSlot:', recibidosSlot)
+            
+            if (excelSlot?.file && emitidosSlot?.file && recibidosSlot?.file) {
+              console.log('✅ Procesando Módulo 3...')
+              results.modulo3 = await api.uploadXML(
+                excelSlot.file as File,
+                emitidosSlot.file as File,
+                recibidosSlot.file as File
+              )
+              console.log('✅ Respuesta Módulo 3:', results.modulo3)
+            } else {
+              console.warn('⚠️ Módulo 3: Faltan archivos')
+            }
+            break
               
             case 4: // SUA
               const suaFiles: any = {}
@@ -341,7 +350,8 @@ export default function NuevoReportePage() {
       console.log('Resultados de procesamiento:', results)
 
         // Guardar en sessionStorage
-        sessionStorage.setItem('ultimo_reporte', JSON.stringify(results))
+        sessionStorage.setItem('reporteData', JSON.stringify(results))
+        console.log('💾 Datos guardados en sessionStorage:', results)
 
         setProcessingResults(results)
         setShowResults(true)
@@ -373,6 +383,9 @@ export default function NuevoReportePage() {
             </h2>
             <button
               onClick={() => {
+                console.log('🔍 processingResults antes de guardar:', processingResults)
+                sessionStorage.setItem('reporteData', JSON.stringify(processingResults))
+                console.log('💾 Guardado en sessionStorage')
                 router.push('/reportes/ver')
               }}
               className="flex-1 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"

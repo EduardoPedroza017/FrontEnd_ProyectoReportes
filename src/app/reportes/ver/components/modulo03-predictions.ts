@@ -121,6 +121,35 @@ export function calcularPredicciones(
     }
   })
 
+  // 🔥 NUEVO: Filtrar meses con menos de 5 facturas (datos insuficientes)
+  const MINIMO_FACTURAS = 5
+  console.log('\n📊 VALIDACIÓN DE CANTIDAD DE FACTURAS POR MES:')
+  
+  Object.keys(datosPorMes).forEach((mes) => {
+    const datos = datosPorMes[mes]
+    const cantIngr = datos.conteoIngresos
+    const cantEgr = datos.conteoEgresos
+    
+    console.log(`   Mes ${mes}: Ingresos=${cantIngr} facturas, Egresos=${cantEgr} facturas`)
+    
+    if (cantIngr > 0 && cantIngr < MINIMO_FACTURAS) {
+      console.log(`   ⚠️ Mes ${mes}: Ingresos con DATOS INSUFICIENTES (${cantIngr} < ${MINIMO_FACTURAS}) - DESCARTANDO`)
+      datos.ingresos = 0
+      datos.conteoIngresos = 0
+    }
+    
+    if (cantEgr > 0 && cantEgr < MINIMO_FACTURAS) {
+      console.log(`   ⚠️ Mes ${mes}: Egresos con DATOS INSUFICIENTES (${cantEgr} < ${MINIMO_FACTURAS}) - DESCARTANDO`)
+      datos.egresos = 0
+      datos.conteoEgresos = 0
+    }
+    
+    // Si ambos están vacíos, eliminar el mes completamente
+    if (datos.ingresos === 0 && datos.egresos === 0) {
+      delete datosPorMes[mes]
+    }
+  })
+
   // Determinar mes actual (último mes con datos)
   const mesesOrdenados = Object.keys(datosPorMes).sort()
   const ultimoMesConDatos = mesesOrdenados.length > 0 ? parseInt(mesesOrdenados[mesesOrdenados.length - 1]) : 7
@@ -133,41 +162,62 @@ export function calcularPredicciones(
   const egresos: number[] = []
   const balance: number[] = []
 
-  // Calcular promedios SIN outliers para proyección
-  const ingresosHistoricos: number[] = []
-  const egresosHistoricos: number[] = []
+  // Calcular predicciones con regresión lineal y variabilidad
+  const VENTANA_TENDENCIA = 6
+  
+  // Obtener valores históricos para regresión (últimos 6 meses con datos)
+  const mesesConDatos = Object.keys(datosPorMes).sort()
+  const ventanaHistorica = mesesConDatos.slice(-VENTANA_TENDENCIA)
+  
+  const valoresIngresos = ventanaHistorica.map(mes => datosPorMes[mes].ingresos)
+  const valoresEgresos = ventanaHistorica.map(mes => datosPorMes[mes].egresos)
+  
+  // Calcular regresión lineal
+  const regresionIngresos = calcularRegresionLineal(valoresIngresos)
+  const regresionEgresos = calcularRegresionLineal(valoresEgresos)
+  
+  // Calcular desviación estándar para variabilidad
+  const desviacionIngresos = calcularDesviacionEstandar(valoresIngresos)
+  const desviacionEgresos = calcularDesviacionEstandar(valoresEgresos)
+  
+  console.log('📈 Regresión Ingresos - Pendiente:', regresionIngresos.pendiente, 'Intercepto:', regresionIngresos.intercepto)
+  console.log('📉 Regresión Egresos - Pendiente:', regresionEgresos.pendiente, 'Intercepto:', regresionEgresos.intercepto)
+  console.log('📊 Desviación Ingresos:', desviacionIngresos)
+  console.log('📊 Desviación Egresos:', desviacionEgresos)
 
   for (let i = 1; i <= 12; i++) {
     const mesKey = i.toString().padStart(2, '0')
     const datos = datosPorMes[mesKey]
 
-    if (datos) {
+    if (datos && (datos.ingresos > 0 || datos.egresos > 0)) {
+      // Datos históricos reales
       ingresos.push(datos.ingresos)
       egresos.push(datos.egresos)
       balance.push(datos.ingresos - datos.egresos)
-
-      if (i < ultimoMesConDatos) {
-        ingresosHistoricos.push(datos.ingresos)
-        egresosHistoricos.push(datos.egresos)
-      }
-    } else if (i < ultimoMesConDatos) {
+    } else if (i <= ultimoMesConDatos) {
+      // Meses sin datos pero dentro del rango histórico
       ingresos.push(0)
       egresos.push(0)
       balance.push(0)
     } else {
-      // Proyección simple usando promedio
-      const promedioIngresos =
-        ingresosHistoricos.length > 0
-          ? ingresosHistoricos.reduce((a, b) => a + b, 0) / ingresosHistoricos.length
-          : 0
-      const promedioEgresos =
-        egresosHistoricos.length > 0
-          ? egresosHistoricos.reduce((a, b) => a + b, 0) / egresosHistoricos.length
-          : 0
-
-      ingresos.push(promedioIngresos)
-      egresos.push(promedioEgresos)
-      balance.push(promedioIngresos - promedioEgresos)
+      // Predicción usando regresión lineal + variabilidad
+      const posicionEnProyeccion = i - ultimoMesConDatos
+      
+      // Calcular valor base con regresión lineal
+      const valorBaseIngresos = regresionIngresos.intercepto + regresionIngresos.pendiente * (valoresIngresos.length + posicionEnProyeccion - 1)
+      const valorBaseEgresos = regresionEgresos.intercepto + regresionEgresos.pendiente * (valoresEgresos.length + posicionEnProyeccion - 1)
+      
+      // Añadir variabilidad natural (±10% de la desviación estándar)
+      const factorVariabilidad = 0.1
+      const variacionIngresos = (Math.random() - 0.5) * 2 * desviacionIngresos * factorVariabilidad
+      const variacionEgresos = (Math.random() - 0.5) * 2 * desviacionEgresos * factorVariabilidad
+      
+      const proyeccionIngresos = Math.max(0, valorBaseIngresos + variacionIngresos)
+      const proyeccionEgresos = Math.max(0, valorBaseEgresos + variacionEgresos)
+      
+      ingresos.push(proyeccionIngresos)
+      egresos.push(proyeccionEgresos)
+      balance.push(proyeccionIngresos - proyeccionEgresos)
     }
   }
 
@@ -234,4 +284,41 @@ export function agruparPorMes(emitidas: Factura[], recibidas: Factura[]): {
   }
 
   return { meses, ingresos, egresos, balance }
+}
+
+/**
+ * Calcula regresión lineal simple
+ */
+function calcularRegresionLineal(valores: number[]): { pendiente: number; intercepto: number } {
+  const n = valores.length
+  if (n < 2) return { pendiente: 0, intercepto: valores[0] || 0 }
+
+  let sumaX = 0
+  let sumaY = 0
+  let sumaXY = 0
+  let sumaX2 = 0
+
+  valores.forEach((y, x) => {
+    sumaX += x
+    sumaY += y
+    sumaXY += x * y
+    sumaX2 += x * x
+  })
+
+  const pendiente = (n * sumaXY - sumaX * sumaY) / (n * sumaX2 - sumaX * sumaX)
+  const intercepto = (sumaY - pendiente * sumaX) / n
+
+  return { pendiente, intercepto }
+}
+
+/**
+ * Calcula desviación estándar
+ */
+function calcularDesviacionEstandar(valores: number[]): number {
+  if (valores.length < 2) return 0
+
+  const promedio = valores.reduce((a, b) => a + b, 0) / valores.length
+  const sumaCuadrados = valores.reduce((sum, val) => sum + Math.pow(val - promedio, 2), 0)
+
+  return Math.sqrt(sumaCuadrados / valores.length)
 }

@@ -34,31 +34,35 @@ interface SUAData {
     guarderias?: number
     cesantia?: number
     infonavit?: number
-    total_cuotas?: number
-    num_trabajadores?: number
+    total_pagar?: number
+    num_cotizantes?: number
     fecha_pago?: string
+    cuotas_patronales?: number
+    cuotas_obreras?: number
   }
   trabajadores?: Array<{
-    nombre: string
-    nss: string
-    rfc: string
-    salario_base: number
-    salario_diario_integrado: number
-    dias_cotizados: number
-    cuota_obrera: number
-    cuota_patronal: number
-    total_cuotas: number
+    nombre?: string
+    nss?: string
+    rfc?: string
+    sdi?: number  // NO salario_base, es SDI
+    dias?: number  // NO dias_cotizados, es dias
+    cuota_fija?: number
+    subtotal_patronal?: number  // NO cuota_patronal
+    subtotal_obrera?: number  // NO cuota_obrera
+    // total_cuotas NO existe como campo directo
   }>
   analisis?: {
     totales?: {
-      cuota_obrera?: number
-      cuota_patronal?: number
-      total?: number
+      obrera?: number  // ⚠️ NO cuota_obrera, es obrera
+      patronal?: number  // ⚠️ NO cuota_patronal, es patronal
+      cuota_fija?: number
+      // total NO existe
     }
     sdi?: {
       promedio?: number
       minimo?: number
       maximo?: number
+      mediana?: number
     }
     distribucion_salarial?: {
       [key: string]: number
@@ -66,10 +70,14 @@ interface SUAData {
     costo_promedio_trabajador?: number
   }
   comprobante?: {
-    folio?: string
-    fecha_pago?: string
-    monto?: number
-    referencia?: string
+    registro_patronal?: string
+    rfc?: string
+    linea_captura?: string
+    folio_sua?: string
+    numero_operacion?: string
+    fecha_hora?: string
+    importe_imss?: number
+    importe_total?: number
   }
   alertas?: Array<{
     tipo: string
@@ -86,7 +94,6 @@ export default function Modulo04({ data }: Modulo04Props) {
   const [activeTab, setActiveTab] = useState<'resumen' | 'trabajadores' | 'analisis' | 'comprobante'>('resumen')
   const [expandedWorker, setExpandedWorker] = useState<number | null>(null)
 
-  // Validación de datos
   if (!data || !data.success) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-6">
@@ -98,7 +105,6 @@ export default function Modulo04({ data }: Modulo04Props) {
     )
   }
 
-  // Extraer datos con mapeo correcto de estructura del backend
   const empresa = data.empresa || {}
   const resumen = data.resumen || {}
   const trabajadores = data.trabajadores || []
@@ -106,21 +112,22 @@ export default function Modulo04({ data }: Modulo04Props) {
   const comprobante = data.comprobante
   const alertas = data.alertas || []
 
-  // Mapeo de valores del backend a la UI
+  // MAPEO CORRECTO según el backend real
   const nombreEmpresa = empresa.nombre || 'Sin nombre'
   const rfcEmpresa = empresa.rfc || 'Sin RFC'
   const registroPatronal = empresa.registro_patronal || 'Sin registro'
   const periodo = empresa.periodo || 'Sin periodo'
   const delegacion = empresa.delegacion || ''
   
-  const numTrabajadores = resumen.num_trabajadores || trabajadores.length
-  const totalCuotas = resumen.total_cuotas || 0
+  const numTrabajadores = resumen.num_cotizantes || trabajadores.length || 0
   const fechaPago = resumen.fecha_pago || 'Sin fecha'
   
-  // Valores de análisis (estructura anidada)
-  const totalCuotaObrera = analisis.totales?.cuota_obrera || 0
-  const totalCuotaPatronal = analisis.totales?.cuota_patronal || 0
-  const totalPagar = analisis.totales?.total || totalCuotas
+  // ⚠️ CORRECCIÓN CRÍTICA: Los nombres correctos son "obrera" y "patronal", NO "cuota_obrera" y "cuota_patronal"
+  const totalCuotaObrera = analisis.totales?.obrera || resumen.cuotas_obreras || 0
+  const totalCuotaPatronal = analisis.totales?.patronal || resumen.cuotas_patronales || 0
+  
+  // ⚠️ CORRECCIÓN: total_pagar está en resumen, NO en analisis.totales.total
+  const totalPagar = resumen.total_pagar || 0
   
   const promedioSDI = analisis.sdi?.promedio || 0
   const minimoSDI = analisis.sdi?.minimo || 0
@@ -129,14 +136,14 @@ export default function Modulo04({ data }: Modulo04Props) {
   const costoPromedioTrabajador = analisis.costo_promedio_trabajador || 0
   const distribSalarial = analisis.distribucion_salarial || {}
 
-  // Calcular promedio salario base desde trabajadores
+  // Calcular promedio SDI (que el backend llama "sdi", NO "salario_base")
   const promedioSalarioBase = trabajadores.length > 0 
-    ? trabajadores.reduce((sum, t) => sum + (t.salario_base || 0), 0) / trabajadores.length 
+    ? trabajadores.reduce((sum, t) => sum + (t.sdi || 0), 0) / trabajadores.length 
     : 0
 
   return (
     <div className="space-y-6">
-      {/* Header con información de empresa */}
+      {/* Header */}
       <div className="bg-white rounded-lg border border-bechapra-border p-6">
         <div className="flex items-start justify-between">
           <div>
@@ -173,7 +180,7 @@ export default function Modulo04({ data }: Modulo04Props) {
         </div>
       </div>
 
-      {/* KPIs Dashboard */}
+      {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-6 text-white">
           <div className="flex items-center justify-between mb-2">
@@ -238,7 +245,7 @@ export default function Modulo04({ data }: Modulo04Props) {
         </div>
       )}
 
-      {/* Tabs de navegación */}
+      {/* Tabs */}
       <div className="bg-white rounded-lg border border-bechapra-border overflow-hidden">
         <div className="border-b border-bechapra-border flex overflow-x-auto">
           <button
@@ -292,95 +299,87 @@ export default function Modulo04({ data }: Modulo04Props) {
           )}
         </div>
 
-        {/* Tab Content: Resumen */}
+        {/* Tab: Resumen */}
         {activeTab === 'resumen' && (
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Cuotas Obreras */}
               <div className="bg-blue-50 rounded-lg p-4">
                 <h4 className="font-semibold text-blue-900 mb-3">Cuotas Obreras</h4>
                 <div className="text-3xl font-bold text-blue-700 mb-2">
                   ${totalCuotaObrera.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                 </div>
-                <div className="text-sm text-blue-600">
-                  Descuentos a trabajadores
-                </div>
+                <div className="text-sm text-blue-600">Descuentos a trabajadores</div>
               </div>
 
-              {/* Cuotas Patronales */}
               <div className="bg-green-50 rounded-lg p-4">
                 <h4 className="font-semibold text-green-900 mb-3">Cuotas Patronales</h4>
                 <div className="text-3xl font-bold text-green-700 mb-2">
                   ${totalCuotaPatronal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                 </div>
-                <div className="text-sm text-green-600">
-                  Aportación de la empresa
-                </div>
+                <div className="text-sm text-green-600">Aportación de la empresa</div>
               </div>
             </div>
 
             {/* Desglose de conceptos */}
-            {resumen && Object.keys(resumen).length > 0 && (
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-3">Desglose de Cuotas</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {resumen.cuota_fija && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="text-xs text-gray-600 mb-1">Cuota Fija</div>
-                      <div className="font-bold text-bechapra-primary">${resumen.cuota_fija.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
-                    </div>
-                  )}
-                  {resumen.excedente && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="text-xs text-gray-600 mb-1">Excedente</div>
-                      <div className="font-bold text-bechapra-primary">${resumen.excedente.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
-                    </div>
-                  )}
-                  {resumen.prestaciones_dinero && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="text-xs text-gray-600 mb-1">Prestaciones en Dinero</div>
-                      <div className="font-bold text-bechapra-primary">${resumen.prestaciones_dinero.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
-                    </div>
-                  )}
-                  {resumen.gastos_medicos && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="text-xs text-gray-600 mb-1">Gastos Médicos</div>
-                      <div className="font-bold text-bechapra-primary">${resumen.gastos_medicos.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
-                    </div>
-                  )}
-                  {resumen.riesgos_trabajo && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="text-xs text-gray-600 mb-1">Riesgos de Trabajo</div>
-                      <div className="font-bold text-bechapra-primary">${resumen.riesgos_trabajo.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
-                    </div>
-                  )}
-                  {resumen.invalidez_vida && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="text-xs text-gray-600 mb-1">Invalidez y Vida</div>
-                      <div className="font-bold text-bechapra-primary">${resumen.invalidez_vida.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
-                    </div>
-                  )}
-                  {resumen.guarderias && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="text-xs text-gray-600 mb-1">Guarderías</div>
-                      <div className="font-bold text-bechapra-primary">${resumen.guarderias.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
-                    </div>
-                  )}
-                  {resumen.cesantia && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="text-xs text-gray-600 mb-1">Cesantía</div>
-                      <div className="font-bold text-bechapra-primary">${resumen.cesantia.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
-                    </div>
-                  )}
-                  {resumen.infonavit && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="text-xs text-gray-600 mb-1">INFONAVIT</div>
-                      <div className="font-bold text-bechapra-primary">${resumen.infonavit.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
-                    </div>
-                  )}
-                </div>
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3">Desglose de Cuotas</h4>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {resumen.cuota_fija !== undefined && resumen.cuota_fija > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-600 mb-1">Cuota Fija</div>
+                    <div className="font-bold text-bechapra-primary">${resumen.cuota_fija.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
+                  </div>
+                )}
+                {resumen.excedente !== undefined && resumen.excedente > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-600 mb-1">Excedente</div>
+                    <div className="font-bold text-bechapra-primary">${resumen.excedente.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
+                  </div>
+                )}
+                {resumen.prestaciones_dinero !== undefined && resumen.prestaciones_dinero > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-600 mb-1">Prestaciones en Dinero</div>
+                    <div className="font-bold text-bechapra-primary">${resumen.prestaciones_dinero.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
+                  </div>
+                )}
+                {resumen.gastos_medicos !== undefined && resumen.gastos_medicos > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-600 mb-1">Gastos Médicos</div>
+                    <div className="font-bold text-bechapra-primary">${resumen.gastos_medicos.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
+                  </div>
+                )}
+                {resumen.riesgos_trabajo !== undefined && resumen.riesgos_trabajo > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-600 mb-1">Riesgos de Trabajo</div>
+                    <div className="font-bold text-bechapra-primary">${resumen.riesgos_trabajo.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
+                  </div>
+                )}
+                {resumen.invalidez_vida !== undefined && resumen.invalidez_vida > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-600 mb-1">Invalidez y Vida</div>
+                    <div className="font-bold text-bechapra-primary">${resumen.invalidez_vida.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
+                  </div>
+                )}
+                {resumen.guarderias !== undefined && resumen.guarderias > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-600 mb-1">Guarderías</div>
+                    <div className="font-bold text-bechapra-primary">${resumen.guarderias.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
+                  </div>
+                )}
+                {resumen.cesantia !== undefined && resumen.cesantia > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-600 mb-1">Cesantía</div>
+                    <div className="font-bold text-bechapra-primary">${resumen.cesantia.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
+                  </div>
+                )}
+                {resumen.infonavit !== undefined && resumen.infonavit > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-600 mb-1">INFONAVIT</div>
+                    <div className="font-bold text-bechapra-primary">${resumen.infonavit.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
             {/* Distribución Salarial */}
             {Object.keys(distribSalarial).length > 0 && (
@@ -399,84 +398,89 @@ export default function Modulo04({ data }: Modulo04Props) {
           </div>
         )}
 
-        {/* Tab Content: Trabajadores */}
+        {/* Tab: Trabajadores */}
         {activeTab === 'trabajadores' && (
           <div className="p-6">
             {trabajadores.length === 0 ? (
               <p className="text-center text-gray-500 py-8">No hay trabajadores registrados</p>
             ) : (
               <div className="space-y-2">
-                {trabajadores.map((trabajador, idx) => (
-                  <div
-                    key={idx}
-                    className="border border-gray-200 rounded-lg overflow-hidden hover:border-bechapra-primary transition-colors"
-                  >
-                    <button
-                      onClick={() => setExpandedWorker(expandedWorker === idx ? null : idx)}
-                      className="w-full px-4 py-3 flex items-center justify-between bg-white hover:bg-gray-50"
+                {trabajadores.map((trabajador, idx) => {
+                  // ⚠️ CORRECCIÓN: calcular total_cuotas aquí porque no viene del backend
+                  const totalCuotasTrabajador = (trabajador.subtotal_patronal || 0) + (trabajador.subtotal_obrera || 0)
+                  
+                  return (
+                    <div
+                      key={idx}
+                      className="border border-gray-200 rounded-lg overflow-hidden hover:border-bechapra-primary transition-colors"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-bechapra-light flex items-center justify-center text-bechapra-primary font-semibold">
-                          {(trabajador.nombre || 'N').charAt(0)}
-                        </div>
-                        <div className="text-left">
-                          <div className="font-semibold text-gray-900">{trabajador.nombre || 'Sin nombre'}</div>
-                          <div className="text-sm text-gray-500">NSS: {trabajador.nss || 'N/A'}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <div className="font-bold text-bechapra-primary">
-                            ${(trabajador.total_cuotas || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                      <button
+                        onClick={() => setExpandedWorker(expandedWorker === idx ? null : idx)}
+                        className="w-full px-4 py-3 flex items-center justify-between bg-white hover:bg-gray-50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-bechapra-light flex items-center justify-center text-bechapra-primary font-semibold">
+                            {(trabajador.nombre || 'N').charAt(0)}
                           </div>
-                          <div className="text-xs text-gray-500">Total cuotas</div>
+                          <div className="text-left">
+                            <div className="font-semibold text-gray-900">{trabajador.nombre || 'Sin nombre'}</div>
+                            <div className="text-sm text-gray-500">NSS: {trabajador.nss || 'N/A'}</div>
+                          </div>
                         </div>
-                        {expandedWorker === idx ? (
-                          <ChevronUp className="w-5 h-5 text-gray-400" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5 text-gray-400" />
-                        )}
-                      </div>
-                    </button>
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <div className="font-bold text-bechapra-primary">
+                              ${totalCuotasTrabajador.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                            </div>
+                            <div className="text-xs text-gray-500">Total cuotas</div>
+                          </div>
+                          {expandedWorker === idx ? (
+                            <ChevronUp className="w-5 h-5 text-gray-400" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5 text-gray-400" />
+                          )}
+                        </div>
+                      </button>
 
-                    {expandedWorker === idx && (
-                      <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <div className="text-gray-500">RFC</div>
-                            <div className="font-medium">{trabajador.rfc || 'N/A'}</div>
-                          </div>
-                          <div>
-                            <div className="text-gray-500">Salario Base</div>
-                            <div className="font-medium">${(trabajador.salario_base || 0).toLocaleString('es-MX')}</div>
-                          </div>
-                          <div>
-                            <div className="text-gray-500">SDI</div>
-                            <div className="font-medium">${(trabajador.salario_diario_integrado || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
-                          </div>
-                          <div>
-                            <div className="text-gray-500">Días Cotizados</div>
-                            <div className="font-medium">{trabajador.dias_cotizados || 0}</div>
-                          </div>
-                          <div>
-                            <div className="text-gray-500">Cuota Obrera</div>
-                            <div className="font-medium text-blue-600">${(trabajador.cuota_obrera || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
-                          </div>
-                          <div>
-                            <div className="text-gray-500">Cuota Patronal</div>
-                            <div className="font-medium text-green-600">${(trabajador.cuota_patronal || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
+                      {expandedWorker === idx && (
+                        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <div className="text-gray-500">RFC</div>
+                              <div className="font-medium">{trabajador.rfc || 'N/A'}</div>
+                            </div>
+                            <div>
+                              <div className="text-gray-500">SDI</div>
+                              <div className="font-medium">${(trabajador.sdi || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
+                            </div>
+                            <div>
+                              <div className="text-gray-500">Días Cotizados</div>
+                              <div className="font-medium">{trabajador.dias || 0}</div>
+                            </div>
+                            <div>
+                              <div className="text-gray-500">Cuota Fija</div>
+                              <div className="font-medium">${(trabajador.cuota_fija || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
+                            </div>
+                            <div>
+                              <div className="text-gray-500">Subtotal Obrera</div>
+                              <div className="font-medium text-blue-600">${(trabajador.subtotal_obrera || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
+                            </div>
+                            <div>
+                              <div className="text-gray-500">Subtotal Patronal</div>
+                              <div className="font-medium text-green-600">${(trabajador.subtotal_patronal || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>
         )}
 
-        {/* Tab Content: Análisis */}
+        {/* Tab: Análisis */}
         {activeTab === 'analisis' && (
           <div className="p-6 space-y-6">
             <div className="bg-gradient-to-br from-bechapra-primary to-bechapra-primary-dark rounded-lg p-6 text-white">
@@ -494,10 +498,6 @@ export default function Modulo04({ data }: Modulo04Props) {
                 <h4 className="font-semibold text-gray-900 mb-4">Estadísticas Salariales</h4>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center pb-2 border-b">
-                    <span className="text-gray-600">Promedio Salario Base</span>
-                    <span className="font-semibold">${promedioSalarioBase.toLocaleString('es-MX', { maximumFractionDigits: 0 })}</span>
-                  </div>
-                  <div className="flex justify-between items-center pb-2 border-b">
                     <span className="text-gray-600">Promedio SDI</span>
                     <span className="font-semibold">${promedioSDI.toLocaleString('es-MX', { maximumFractionDigits: 2 })}</span>
                   </div>
@@ -508,7 +508,7 @@ export default function Modulo04({ data }: Modulo04Props) {
                     </div>
                   )}
                   {maximoSDI > 0 && (
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center pb-2 border-b">
                       <span className="text-gray-600">SDI Máximo</span>
                       <span className="font-semibold">${maximoSDI.toLocaleString('es-MX', { maximumFractionDigits: 2 })}</span>
                     </div>
@@ -541,7 +541,7 @@ export default function Modulo04({ data }: Modulo04Props) {
           </div>
         )}
 
-        {/* Tab Content: Comprobante */}
+        {/* Tab: Comprobante */}
         {activeTab === 'comprobante' && comprobante && (
           <div className="p-6">
             <div className="bg-green-50 border border-green-200 rounded-lg p-6">
@@ -551,22 +551,32 @@ export default function Modulo04({ data }: Modulo04Props) {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <div className="text-sm text-green-700 mb-1">Folio</div>
-                  <div className="font-semibold text-green-900">{comprobante.folio || 'N/A'}</div>
+                  <div className="text-sm text-green-700 mb-1">Folio SUA</div>
+                  <div className="font-semibold text-green-900">{comprobante.folio_sua || 'N/A'}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-green-700 mb-1">Fecha de Pago</div>
-                  <div className="font-semibold text-green-900">{comprobante.fecha_pago || 'N/A'}</div>
+                  <div className="text-sm text-green-700 mb-1">Número de Operación</div>
+                  <div className="font-semibold text-green-900">{comprobante.numero_operacion || 'N/A'}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-green-700 mb-1">Monto Pagado</div>
+                  <div className="text-sm text-green-700 mb-1">Fecha y Hora</div>
+                  <div className="font-semibold text-green-900">{comprobante.fecha_hora || 'N/A'}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-green-700 mb-1">Línea de Captura</div>
+                  <div className="font-semibold text-green-900">{comprobante.linea_captura || 'N/A'}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-green-700 mb-1">Importe IMSS</div>
                   <div className="font-semibold text-green-900">
-                    ${(comprobante.monto || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                    ${(comprobante.importe_imss || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-green-700 mb-1">Referencia</div>
-                  <div className="font-semibold text-green-900">{comprobante.referencia || 'N/A'}</div>
+                  <div className="text-sm text-green-700 mb-1">Importe Total</div>
+                  <div className="font-semibold text-green-900">
+                    ${(comprobante.importe_total || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                  </div>
                 </div>
               </div>
             </div>

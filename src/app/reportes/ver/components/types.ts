@@ -3,7 +3,7 @@
 export interface ReporteData {
   modulo1?: Modulo1Data
   modulo3?: Modulo3Data
-  modulo4?: Modulo4Data
+  modulo4?: Modulo04Data 
 }
 
 export interface Modulo1Data {
@@ -146,6 +146,55 @@ export interface Modulo3Data {
   }
 }
 
+
+export interface Modulo04Data {
+  success: boolean
+  empresa: {
+    nombre: string
+    rfc: string
+    registro_patronal: string
+  }
+  resumen: {
+    num_cotizantes: number
+    total_pagar: number
+    periodo: string
+    fecha_pago: string
+  }
+  trabajadores: Array<{
+    nombre: string
+    nss: string
+    rfc: string
+    salario_base: number
+    salario_diario_integrado: number
+    dias_cotizados: number
+    cuota_obrera: number
+    cuota_patronal: number
+    total_cuotas: number
+  }>
+  analisis: {
+    promedio_salario_base: number
+    promedio_sdi: number
+    total_cuota_obrera: number
+    total_cuota_patronal: number
+    distribucion_salarial: {
+      [key: string]: number
+    }
+    costo_promedio_trabajador: number
+  }
+  comprobante?: {
+    folio: string
+    fecha_pago: string
+    monto: number
+    referencia: string
+  }
+  alertas: Array<{
+    tipo: string
+    mensaje: string
+    trabajador?: string
+  }>
+}
+
+
 export interface Factura {
   fecha: string
   folio: string
@@ -190,19 +239,4 @@ export interface Complemento {
   total: number
   importe_pagado: number
   importe_insoluto: number
-}
-
-// Módulo 04: SUA
-export interface Modulo4Data {
-  success: boolean
-  resumen: {
-    total_pagar: number
-    num_cotizantes: number
-  }
-  analisis: {
-    totales: {
-      patronal: number
-      obrera: number
-    }
-  }
 }

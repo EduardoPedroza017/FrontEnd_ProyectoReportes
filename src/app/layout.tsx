@@ -31,7 +31,7 @@ export default function RootLayout({
               <Header />
               
               {/* Page content */}
-              <main className="flex-1 p-6 lg:p-8 pt-[88px] lg:pt-8">
+              <main className="flex-1 p-6 lg:p-8 pt-[88px] lg:pt-[88px]">
                 <div className="max-w-7xl mx-auto">
                   {children}
                 </div>

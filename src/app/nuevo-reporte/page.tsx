@@ -329,15 +329,24 @@ export default function NuevoReportePage() {
             break
               
             case 4: // SUA
-              const suaFiles: any = {}
-              module.fileSlots.forEach(slot => {
-                if (slot.file) {
-                  suaFiles[slot.id.replace('sua-', '')] = slot.file
-                }
-              })
+              const cedulaSlot = module.fileSlots.find(s => s.id === 'cedula')
+              const resumenSlot = module.fileSlots.find(s => s.id === 'resumen')
+              const sipareSlot = module.fileSlots.find(s => s.id === 'sipare')
+              const comprobanteSlot = module.fileSlots.find(s => s.id === 'comprobante')
               
-              if (Object.keys(suaFiles).length > 0) {
-                results.modulo4 = await api.uploadSUA(suaFiles)
+              console.log('🔍 Módulo 4 - cedulaSlot:', cedulaSlot)
+              
+              if (cedulaSlot?.file) {
+                console.log('✅ Procesando Módulo 4 (SUA)...')
+                results.modulo4 = await api.uploadSUA({
+                  cedula: cedulaSlot.file as File,
+                  resumen: resumenSlot?.file as File | undefined,
+                  sipare: sipareSlot?.file as File | undefined,
+                  comprobante: comprobanteSlot?.file as File | undefined
+                })
+                console.log('✅ Respuesta Módulo 4:', results.modulo4)
+              } else {
+                console.warn('⚠️ Módulo 4: Falta la cédula de determinación')
               }
               break
           }
@@ -425,6 +434,24 @@ export default function NuevoReportePage() {
                       <div className="mt-2 text-sm">
                         <p>Total emitidas: {value.resumen.total_emitidas}</p>
                         <p>Total recibidas: {value.resumen.total_recibidas}</p>
+                      </div>
+                    )}
+
+                    {key === 'modulo4' && '👥 SUA - Seguro Social'}
+
+                    // Y en la parte de visualización de éxito:
+
+                    {key === 'modulo4' && (
+                      <div>
+                        <div className="flex items-center gap-2 text-green-600 mb-2">
+                          <CheckCircle2 className="w-5 h-5" />
+                          <span className="font-medium">Procesado correctamente</span>
+                        </div>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <p>• Empresa: {value.empresa?.nombre}</p>
+                          <p>• Trabajadores: {value.resumen?.num_cotizantes}</p>
+                          <p>• Total a pagar: ${value.resumen?.total_pagar?.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
+                        </div>
                       </div>
                     )}
                   </div>

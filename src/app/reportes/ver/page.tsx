@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { ArrowLeft, Download, FileText } from 'lucide-react'
+import { ArrowLeft, Download, FileText, Building2 } from 'lucide-react'
 import Link from 'next/link'
 import Modulo01 from './components/Modulo01'
 import Modulo03 from './components/Modulo03'
+import Modulo04 from './components/Modulo04'
 import { ReporteData } from './components/types'
+
 
 export default function VerReportePage() {
   const searchParams = useSearchParams()
@@ -171,6 +173,7 @@ export default function VerReportePage() {
 
   const tieneModulo01 = reporteData?.modulo1?.success
   const tieneModulo03 = reporteData?.modulo3?.success
+  const tieneModulo04 = reporteData?.modulo4?.success
 
   return (
     <div className="min-h-screen bg-bechapra-light-3">
@@ -249,6 +252,26 @@ export default function VerReportePage() {
               <Modulo03 data={reporteData.modulo3} />
             </div>
           )}
+
+          {/* Módulo 04: SUA */}
+        {tieneModulo04 && (
+        <div className="bg-white rounded-lg border border-bechapra-border p-6">
+            <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+                <Building2 className="w-6 h-6 text-white" />
+            </div>
+            <div>
+                <h2 className="text-xl font-bold text-bechapra-text-primary">
+                Módulo 04: SUA
+                </h2>
+                <p className="text-sm text-bechapra-text-secondary">
+                Sistema Único de Autodeterminación
+                </p>
+            </div>
+            </div>
+            <Modulo04 data={reporteData.modulo4} />
+        </div>
+        )}
 
           {/* Mensaje si no hay módulos */}
           {!tieneModulo01 && !tieneModulo03 && (

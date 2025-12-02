@@ -1,9 +1,12 @@
 'use client'
 
+
 import React, { useState } from 'react'
 import { FileText, TrendingUp, TrendingDown, Tag, BarChart3, Calendar, Check, X, Filter, Package, DollarSign } from 'lucide-react'
 import { Modulo3Data } from './types'
 import { formatCurrency, formatDate, truncateText } from './utils'
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { calcularPredicciones, agruparPorMes } from './modulo03-predictions'
 
 interface Modulo03Props {
   data: Modulo3Data
@@ -15,6 +18,7 @@ export default function Modulo03({ data }: Modulo03Props) {
   >('emitidas')
   
   const [selectedMonth, setSelectedMonth] = useState<string>('')
+  const [incluirGlobales, setIncluirGlobales] = useState<boolean>(false)
 
   if (!data || !data.success) {
     return (
@@ -48,13 +52,23 @@ export default function Modulo03({ data }: Modulo03Props) {
 
   const emitidas = filtrarPorMes(data.emitidas || [])
   const recibidas = filtrarPorMes(data.recibidas || [])
+
+  // Datos para análisis (siempre con datos completos, no filtrados)
+  const datosAnalisis = agruparPorMes(data.emitidas || [], data.recibidas || [])
+  
+  // Datos para predicciones (con toggle de globales)
+  const datosPredicciones = calcularPredicciones(
+    data.emitidas || [],
+    data.recibidas || [],
+    incluirGlobales
+  )
   const resumenFiltrado = selectedMonth ? {
     total_emitidas: emitidas.length,
     total_recibidas: recibidas.length,
     monto_emitidas: emitidas.reduce((sum, f) => sum + (f.total || 0), 0),
     monto_recibidas: recibidas.reduce((sum, f) => sum + (f.total || 0), 0),
     coincidencias: emitidas.filter(f => f.xml_encontrado).length + recibidas.filter(f => f.xml_encontrado).length,
-    porcentaje_match: ((emitidas.filter(f => f.xml_encontrado).length + recibidas.filter(f => f.xml_encontrado).length) / (emitidas.length + recibidas.length) * 100).toFixed(2),
+    porcentaje_match: parseFloat(((emitidas.filter(f => f.xml_encontrado).length + recibidas.filter(f => f.xml_encontrado).length) / (emitidas.length + recibidas.length) * 100).toFixed(2)),
     balance: emitidas.reduce((sum, f) => sum + (f.total || 0), 0) - recibidas.reduce((sum, f) => sum + (f.total || 0), 0)
   } : resumen
 
@@ -266,58 +280,69 @@ export default function Modulo03({ data }: Modulo03Props) {
 
         {/* Tab Content: Análisis */}
         {activeTab === 'analisis' && (
-          <div className="p-6">
+          <div className="p-6 space-y-6">
             <h3 className="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
               <BarChart3 className="w-5 h-5" />
-              Análisis Comparativo
+              Análisis Detallado
             </h3>
-            
+
+            {/* Gráficas */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Comparativa por mes */}
+              {/* Gráfica de Ingresos vs Gastos */}
               <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <h4 className="font-semibold mb-3 text-gray-700">Resumen del Período</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                    <span className="text-sm text-gray-700">Total Ingresos</span>
-                    <span className="text-lg font-bold text-green-700">{formatCurrency(resumenFiltrado.monto_emitidas)}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-                    <span className="text-sm text-gray-700">Total Egresos</span>
-                    <span className="text-lg font-bold text-red-700">{formatCurrency(resumenFiltrado.monto_recibidas)}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                    <span className="text-sm text-gray-700">Diferencia</span>
-                    <span className={`text-lg font-bold ${resumenFiltrado.balance >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                      {formatCurrency(Math.abs(resumenFiltrado.balance))}
-                    </span>
-                  </div>
-                </div>
+                <h4 className="font-semibold mb-4 text-gray-700">💰 Ingresos vs Gastos por Mes</h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={datosAnalisis.meses.map((mes, idx) => ({
+                    mes,
+                    Ingresos: datosAnalisis.ingresos[idx],
+                    Gastos: datosAnalisis.egresos[idx]
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="mes" />
+                    <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
+                    <Tooltip formatter={(value: number) => `$${value.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`} />
+                    <Legend />
+                    <Bar dataKey="Ingresos" fill="#28a745" />
+                    <Bar dataKey="Gastos" fill="#dc3545" />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
 
-              {/* Estadísticas */}
+              {/* Gráfica de Tendencia */}
               <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <h4 className="font-semibold mb-3 text-gray-700">Estadísticas</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-700">Promedio por Factura Emitida</span>
-                    <span className="text-lg font-bold text-gray-900">
-                      {formatCurrency(resumenFiltrado.total_emitidas > 0 ? resumenFiltrado.monto_emitidas / resumenFiltrado.total_emitidas : 0)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-700">Promedio por Factura Recibida</span>
-                    <span className="text-lg font-bold text-gray-900">
-                      {formatCurrency(resumenFiltrado.total_recibidas > 0 ? resumenFiltrado.monto_recibidas / resumenFiltrado.total_recibidas : 0)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-700">Tasa de Coincidencia XML</span>
-                    <span className="text-lg font-bold text-blue-700">
-                      {resumenFiltrado.porcentaje_match}%
-                    </span>
-                  </div>
-                </div>
+                <h4 className="font-semibold mb-4 text-gray-700">📈 Tendencia de Facturación (Balance)</h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={datosAnalisis.meses.map((mes, idx) => ({
+                    mes,
+                    Balance: datosAnalisis.balance[idx]
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="mes" />
+                    <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
+                    <Tooltip formatter={(value: number) => `$${value.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`} />
+                    <Legend />
+                    <Line type="monotone" dataKey="Balance" stroke="#667eea" strokeWidth={3} />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
+            </div>
+
+            {/* Insights Clave */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <h4 className="font-semibold mb-4 text-blue-900 flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
+                Insights Clave
+              </h4>
+              <ul className="space-y-2 text-sm text-gray-700">
+                <li>• Balance neto: <strong className="text-gray-900">{formatCurrency(resumenFiltrado.balance)}</strong></li>
+                <li>• Promedio factura emitida: <strong className="text-gray-900">
+                  {formatCurrency(resumenFiltrado.total_emitidas > 0 ? resumenFiltrado.monto_emitidas / resumenFiltrado.total_emitidas : 0)}
+                </strong></li>
+                <li>• Promedio factura recibida: <strong className="text-gray-900">
+                  {formatCurrency(resumenFiltrado.total_recibidas > 0 ? resumenFiltrado.monto_recibidas / resumenFiltrado.total_recibidas : 0)}
+                </strong></li>
+                <li>• Tasa de coincidencia XML: <strong className="text-blue-700">{resumenFiltrado.porcentaje_match}%</strong></li>
+              </ul>
             </div>
           </div>
         )}
@@ -382,76 +407,189 @@ export default function Modulo03({ data }: Modulo03Props) {
 
         {/* Tab Content: Predicciones */}
         {activeTab === 'predicciones' && (
-          <div className="p-6">
+          <div className="p-6 space-y-6">
             <h3 className="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
               <Calendar className="w-5 h-5" />
               Proyecciones Financieras
             </h3>
 
-            {data.predicciones ? (
-              <div className="space-y-6">
-                {/* Proyecciones de Ingresos */}
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h4 className="font-semibold mb-3 text-green-700 flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4" />
-                    Proyección de Ingresos (Próximos 3 meses)
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {data.predicciones.emitidas?.slice(0, 3).map((pred: any, idx: number) => (
-                      <div key={idx} className="bg-white rounded-lg p-3 border border-green-100">
-                        <p className="text-xs text-gray-600 mb-1">{pred.mes}</p>
-                        <p className="text-xl font-bold text-green-700">{formatCurrency(pred.monto)}</p>
-                        <p className="text-xs text-gray-600 mt-1">{pred.cantidad} facturas estimadas</p>
-                      </div>
-                    ))}
-                  </div>
+            {/* Toggle de Facturas Globales */}
+            <div className="bg-gradient-to-r from-bechapra-primary to-blue-600 rounded-lg p-4 text-white">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <h4 className="font-semibold mb-1">⚙️ Configuración de Predicciones</h4>
+                  <p className="text-sm opacity-90">
+                    Las facturas globales son facturas al "Público en General" (RFC: XAXX010101000) que consolidan múltiples ventas
+                  </p>
                 </div>
-
-                {/* Proyecciones de Egresos */}
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <h4 className="font-semibold mb-3 text-red-700 flex items-center gap-2">
-                    <TrendingDown className="w-4 h-4" />
-                    Proyección de Egresos (Próximos 3 meses)
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {data.predicciones.recibidas?.slice(0, 3).map((pred: any, idx: number) => (
-                      <div key={idx} className="bg-white rounded-lg p-3 border border-red-100">
-                        <p className="text-xs text-gray-600 mb-1">{pred.mes}</p>
-                        <p className="text-xl font-bold text-red-700">{formatCurrency(pred.monto)}</p>
-                        <p className="text-xs text-gray-600 mt-1">{pred.cantidad} facturas estimadas</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Balance Proyectado */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-semibold mb-3 text-blue-700 flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4" />
-                    Balance Proyectado
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {data.predicciones.balance?.slice(0, 3).map((pred: any, idx: number) => (
-                      <div key={idx} className="bg-white rounded-lg p-3 border border-blue-100">
-                        <p className="text-xs text-gray-600 mb-1">{pred.mes}</p>
-                        <p className={`text-xl font-bold ${pred.monto >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                          {formatCurrency(Math.abs(pred.monto))}
-                        </p>
-                        <p className={`text-xs mt-1 ${pred.monto >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {pred.monto >= 0 ? 'Positivo' : 'Negativo'}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
+                <div className="flex items-center gap-3">
+                  <label className="font-semibold">Incluir Facturas Globales:</label>
+                  <button
+                    onClick={() => setIncluirGlobales(!incluirGlobales)}
+                    className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+                      incluirGlobales ? 'bg-green-500' : 'bg-white/30'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                        incluirGlobales ? 'translate-x-7' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
                 </div>
               </div>
-            ) : (
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-8 text-center">
-                <Calendar className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-                <p className="text-gray-700 font-medium mb-2">No hay datos de predicciones</p>
-                <p className="text-gray-600 text-sm">El backend no devolvió información de proyecciones financieras.</p>
+            </div>
+
+            {/* Info de facturas globales */}
+            {datosPredicciones.facturasGlobalesExcluidas > 0 && (
+              <div className={`rounded-lg p-4 border-l-4 ${
+                incluirGlobales 
+                  ? 'bg-green-50 border-green-500 text-green-800' 
+                  : 'bg-orange-50 border-orange-500 text-orange-800'
+              }`}>
+                <p className="font-semibold">
+                  {incluirGlobales ? 'ℹ️ Incluyendo' : '⚠️ Excluyendo'} {datosPredicciones.facturasGlobalesExcluidas} facturas globales
+                  ({formatCurrency(datosPredicciones.montoGlobalesExcluido)})
+                </p>
+                {!incluirGlobales && (
+                  <p className="text-sm mt-1">Estas facturas consolidan múltiples ventas pequeñas (Público en General)</p>
+                )}
               </div>
             )}
+
+            {/* Alertas */}
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <h4 className="font-semibold mb-2 text-amber-900">⚠️ Alertas:</h4>
+              <ul className="text-sm text-amber-800 space-y-1">
+                {(typeof resumen.porcentaje_match === 'string' ? parseFloat(resumen.porcentaje_match) : resumen.porcentaje_match) < 90 && (
+                  <li>• Baja coincidencia XML: revisa documentación faltante.</li>
+                )}
+                {resumen.balance < 0 && (
+                  <li>• Balance negativo: ajusta gastos o mejora cobros.</li>
+                )}
+                {(typeof resumen.porcentaje_match === 'string' ? parseFloat(resumen.porcentaje_match) : resumen.porcentaje_match) >= 90 && resumen.balance >= 0 && (
+                  <li>• Sin alertas críticas - Continúa monitoreando.</li>
+                )}
+              </ul>
+            </div>
+
+            {/* Recomendaciones */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h4 className="font-semibold mb-2 text-green-900">✅ Recomendaciones:</h4>
+              <ul className="text-sm text-green-800 space-y-1 ml-5 list-disc">
+                <li>Revisar facturas sin XML para completar documentación fiscal</li>
+                <li>Analizar proveedores con mayor volumen para negociar mejores términos</li>
+                <li>Diversificar base de clientes para reducir dependencia</li>
+              </ul>
+            </div>
+
+            {/* Título de gráficas */}
+            <h3 className="text-md font-semibold text-gray-900 mt-6">📈 Proyecciones para el Resto del Año</h3>
+
+            {/* Gráfica 1: Predicción de Ingresos */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h4 className="font-semibold mb-4 text-gray-700">💰 Predicción de Ingresos (Emitidas)</h4>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={datosPredicciones.meses.map((mes, idx) => ({
+                  mes,
+                  Histórico: idx <= datosPredicciones.mesActual ? datosPredicciones.ingresos[idx] : null,
+                  Proyección: idx >= datosPredicciones.mesActual ? datosPredicciones.ingresos[idx] : null
+                }))}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mes" />
+                  <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
+                  <Tooltip formatter={(value: number) => value ? `$${value.toLocaleString('es-MX', { minimumFractionDigits: 2 })}` : 'N/A'} />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="Histórico" 
+                    stroke="#28a745" 
+                    strokeWidth={3}
+                    dot={{ r: 5 }}
+                    connectNulls={false}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="Proyección" 
+                    stroke="#ff9800" 
+                    strokeWidth={3}
+                    strokeDasharray="10 5"
+                    dot={{ r: 5 }}
+                    connectNulls={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Gráfica 2: Predicción de Egresos */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h4 className="font-semibold mb-4 text-gray-700">💸 Predicción de Egresos (Recibidas)</h4>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={datosPredicciones.meses.map((mes, idx) => ({
+                  mes,
+                  Histórico: idx <= datosPredicciones.mesActual ? datosPredicciones.egresos[idx] : null,
+                  Proyección: idx >= datosPredicciones.mesActual ? datosPredicciones.egresos[idx] : null
+                }))}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mes" />
+                  <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
+                  <Tooltip formatter={(value: number) => value ? `$${value.toLocaleString('es-MX', { minimumFractionDigits: 2 })}` : 'N/A'} />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="Histórico" 
+                    stroke="#dc3545" 
+                    strokeWidth={3}
+                    dot={{ r: 5 }}
+                    connectNulls={false}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="Proyección" 
+                    stroke="#ff9800" 
+                    strokeWidth={3}
+                    strokeDasharray="10 5"
+                    dot={{ r: 5 }}
+                    connectNulls={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Gráfica 3: Predicción de Balance */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h4 className="font-semibold mb-4 text-gray-700">📊 Predicción de Balance</h4>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={datosPredicciones.meses.map((mes, idx) => ({
+                  mes,
+                  Histórico: idx <= datosPredicciones.mesActual ? datosPredicciones.balance[idx] : null,
+                  Proyección: idx >= datosPredicciones.mesActual ? datosPredicciones.balance[idx] : null
+                }))}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mes" />
+                  <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
+                  <Tooltip formatter={(value: number) => value ? `$${value.toLocaleString('es-MX', { minimumFractionDigits: 2 })}` : 'N/A'} />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="Histórico" 
+                    stroke="#667eea" 
+                    strokeWidth={3}
+                    dot={{ r: 5 }}
+                    connectNulls={false}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="Proyección" 
+                    stroke="#ff9800" 
+                    strokeWidth={3}
+                    strokeDasharray="10 5"
+                    dot={{ r: 5 }}
+                    connectNulls={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         )}
       </div>

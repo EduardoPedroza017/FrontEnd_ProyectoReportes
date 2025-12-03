@@ -102,43 +102,43 @@ export default function Modulo08({ data }: Modulo08Props) {
       {/* KPIs Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total ISR */}
-        <div className="bg-gradient-to-br from-purple-500 to-purple-700 text-white rounded-lg p-6">
-          <DollarSign className="w-8 h-8 mb-2 opacity-80" />
-          <p className="text-sm opacity-90 mb-1">Total ISR Pagado</p>
-          <p className="text-3xl font-bold">{formatCurrency(kpis.total_isr_pagado || 0)}</p>
-          <p className="text-sm opacity-75 mt-2">
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+          <DollarSign className="w-8 h-8 mb-2 text-purple-600" />
+          <p className="text-sm text-purple-700 font-medium mb-1">Total ISR Pagado</p>
+          <p className="text-3xl font-bold text-purple-600">{formatCurrency(kpis.total_isr_pagado || 0)}</p>
+          <p className="text-sm text-purple-600 mt-2">
             Promedio: {formatCurrency(kpis.promedio_mensual_isr || 0)}/mes
           </p>
         </div>
 
         {/* Total IVA */}
-        <div className="bg-gradient-to-br from-green-500 to-green-700 text-white rounded-lg p-6">
-          <TrendingUp className="w-8 h-8 mb-2 opacity-80" />
-          <p className="text-sm opacity-90 mb-1">Total IVA Pagado</p>
-          <p className="text-3xl font-bold">{formatCurrency(kpis.total_iva_pagado || 0)}</p>
-          <p className="text-sm opacity-75 mt-2">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <TrendingUp className="w-8 h-8 mb-2 text-green-600" />
+          <p className="text-sm text-green-700 font-medium mb-1">Total IVA Pagado</p>
+          <p className="text-3xl font-bold text-green-600">{formatCurrency(kpis.total_iva_pagado || 0)}</p>
+          <p className="text-sm text-green-600 mt-2">
             Promedio: {formatCurrency(kpis.promedio_mensual_iva || 0)}/mes
           </p>
         </div>
 
         {/* Total Impuestos */}
-        <div className="bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-lg p-6">
-          <Calculator className="w-8 h-8 mb-2 opacity-80" />
-          <p className="text-sm opacity-90 mb-1">Total Impuestos</p>
-          <p className="text-3xl font-bold">{formatCurrency(kpis.total_impuestos || 0)}</p>
-          <p className="text-sm opacity-75 mt-2">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <Calculator className="w-8 h-8 mb-2 text-blue-600" />
+          <p className="text-sm text-blue-700 font-medium mb-1">Total Impuestos</p>
+          <p className="text-3xl font-bold text-blue-600">{formatCurrency(kpis.total_impuestos || 0)}</p>
+          <p className="text-sm text-blue-600 mt-2">
             Carga fiscal: {(kpis.carga_fiscal || 0).toFixed(2)}%
           </p>
         </div>
 
         {/* Cumplimiento */}
-        <div className="bg-gradient-to-br from-yellow-500 to-yellow-700 text-white rounded-lg p-6">
-          <CheckCircle2 className="w-8 h-8 mb-2 opacity-80" />
-          <p className="text-sm opacity-90 mb-1">Cumplimiento</p>
-          <p className="text-3xl font-bold">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+          <CheckCircle2 className="w-8 h-8 mb-2 text-yellow-600" />
+          <p className="text-sm text-yellow-700 font-medium mb-1">Cumplimiento</p>
+          <p className="text-3xl font-bold text-yellow-600">
             {(kpis.porcentaje_cumplimiento || 0).toFixed(1)}%
           </p>
-          <p className="text-sm opacity-75 mt-2">
+          <p className="text-sm text-yellow-600 mt-2">
             {kpis.declaraciones_presentadas || 0} declaraciones
           </p>
         </div>
@@ -175,22 +175,22 @@ export default function Modulo08({ data }: Modulo08Props) {
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gradient-to-r from-bechapra-primary to-bechapra-secondary text-white">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">Mes</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold">ISR PM</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold">ISR Ret.</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold">IVA</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold">IVA Ret.</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold">Total Mes</th>
+                  <thead>
+                    <tr className="bg-bechapra-light-3 text-bechapra-text-primary">
+                      <th className="px-4 py-3 text-left text-sm font-medium">Mes</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium">ISR PM</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium">ISR Ret.</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium">IVA</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium">IVA Ret.</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium">Total Mes</th>
                     </tr>
                   </thead>
                   <tbody>
                     {meses.map((mes, idx) => (
                       <tr
                         key={idx}
-                        className={`border-b border-gray-100 ${
-                          mes.total_mes > 0 ? 'bg-white hover:bg-gray-50' : 'bg-gray-50'
+                        className={`border-t border-bechapra-border hover:bg-gray-50 ${
+                          mes.total_mes > 0 ? 'bg-white' : 'bg-gray-50'
                         }`}
                       >
                         <td className="px-4 py-3 text-sm font-medium text-gray-900">

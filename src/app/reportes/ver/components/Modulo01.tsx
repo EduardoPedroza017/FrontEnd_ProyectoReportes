@@ -321,7 +321,7 @@ export default function Modulo01({ data }: Modulo01Props) {
             }`}
             onClick={() => setActiveTab('graficas')}
           >
-            📊 Gráficas
+            <BarChart3 className="w-4 h-4" /> Gráficas
           </button>
         </div>
 

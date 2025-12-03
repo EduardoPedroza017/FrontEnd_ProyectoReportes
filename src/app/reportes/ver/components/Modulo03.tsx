@@ -112,20 +112,26 @@ export default function Modulo03({ data }: Modulo03Props) {
       </div>
 
       {/* Filtro de Mes */}
-      <div className="bg-gradient-to-r from-bechapra-primary to-blue-600 rounded-lg p-4">
+      <div className="bg-blue-50 rounded-lg border-2 border-blue-300 p-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="text-white">
-            <h3 className="font-semibold flex items-center gap-2">
-              <Filter className="w-5 h-5" />
-              Filtrar Tablas por Mes
-            </h3>
-            <p className="text-sm opacity-90 mt-1">Las predicciones siempre muestran el año completo</p>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Filter className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-bechapra-text-primary">
+                Filtrar Tablas por Mes
+              </h3>
+              <p className="text-sm text-bechapra-text-secondary mt-0.5">
+                Las predicciones siempre muestran el año completo
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="px-4 py-2 rounded-lg border-0 font-medium text-gray-700 cursor-pointer"
+              className="px-4 py-2.5 rounded-lg border border-bechapra-border font-medium text-bechapra-text-primary cursor-pointer hover:border-bechapra-primary transition-colors focus:outline-none focus:ring-2 focus:ring-bechapra-primary focus:border-transparent"
             >
               <option value="">TODO EL AÑO</option>
               <option value="01">Enero</option>
@@ -412,20 +418,25 @@ export default function Modulo03({ data }: Modulo03Props) {
             </h3>
 
             {/* Toggle de Facturas Globales */}
-            <div className="bg-gradient-to-r from-bechapra-primary to-blue-600 rounded-lg p-4 text-white">
+            <div className="bg-white rounded-lg border-2 border-blue-200 p-6">
               <div className="flex items-center justify-between flex-wrap gap-4">
-                <div>
-                  <h4 className="font-semibold mb-1">Configuración de Predicciones</h4>
-                  <p className="text-sm opacity-90">
-                    Las facturas globales son facturas al "Público en General" (RFC: XAXX010101000) que consolidan múltiples ventas
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <BarChart3 className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-bechapra-text-primary">Configuración de Predicciones</h4>
+                    <p className="text-sm text-bechapra-text-secondary mt-0.5">
+                      Las facturas globales son facturas al "Público en General" (RFC: XAXX010101000) que consolidan múltiples ventas
+                    </p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <label className="font-semibold">Incluir Facturas Globales:</label>
+                  <label className="font-semibold text-bechapra-text-primary">Incluir Facturas Globales:</label>
                   <button
                     onClick={() => setIncluirGlobales(!incluirGlobales)}
                     className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-                      incluirGlobales ? 'bg-green-500' : 'bg-white/30'
+                      incluirGlobales ? 'bg-green-500' : 'bg-gray-300'
                     }`}
                   >
                     <span

@@ -104,53 +104,65 @@ export default function Modulo07({ data }: Modulo07Props) {
       {/* KPIs Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total a Pagar */}
-        <div className="bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg p-6 text-white">
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <DollarSign className="w-8 h-8 opacity-80" />
-            <div className="text-xs bg-white/20 px-2 py-1 rounded">
+            <DollarSign className="w-8 h-8 text-purple-600" />
+            <div className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded font-medium">
               {data.pago.fecha_limite || 'Sin fecha'}
             </div>
           </div>
-          <p className="text-sm opacity-90 mb-1">Total a Pagar</p>
-          <p className="text-3xl font-bold">{formatCurrency(data.dashboard.kpis.total_a_pagar)}</p>
+          <p className="text-sm text-purple-700 font-medium mb-1">Total a Pagar</p>
+          <p className="text-3xl font-bold text-purple-600">{formatCurrency(data.dashboard.kpis.total_a_pagar)}</p>
         </div>
 
         {/* Trabajadores */}
-        <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg p-6 text-white">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <Users className="w-8 h-8 opacity-80" />
+            <Users className="w-8 h-8 text-blue-600" />
           </div>
-          <p className="text-sm opacity-90 mb-1">Trabajadores</p>
-          <p className="text-3xl font-bold">{formatNumber(data.dashboard.kpis.num_trabajadores)}</p>
-          <p className="text-xs opacity-80 mt-2">Con créditos activos</p>
+          <p className="text-sm text-blue-700 font-medium mb-1">Trabajadores</p>
+          <p className="text-3xl font-bold text-blue-600">{formatNumber(data.dashboard.kpis.num_trabajadores)}</p>
+          <p className="text-xs text-blue-600 mt-2">Con créditos activos</p>
         </div>
 
         {/* Total Créditos */}
-        <div className="bg-gradient-to-br from-green-500 to-green-700 rounded-lg p-6 text-white">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <CreditCard className="w-8 h-8 opacity-80" />
+            <CreditCard className="w-8 h-8 text-green-600" />
           </div>
-          <p className="text-sm opacity-90 mb-1">Total Créditos</p>
-          <p className="text-3xl font-bold">{formatNumber(data.dashboard.kpis.num_creditos)}</p>
-          <p className="text-xs opacity-80 mt-2">Algunos con múltiples</p>
+          <p className="text-sm text-green-700 font-medium mb-1">Total Créditos</p>
+          <p className="text-3xl font-bold text-green-600">{formatNumber(data.dashboard.kpis.num_creditos)}</p>
+          <p className="text-xs text-green-600 mt-2">Algunos con múltiples</p>
         </div>
 
         {/* Estado del Pago */}
-        <div className={`bg-gradient-to-br ${
+        <div className={`border-2 rounded-lg p-6 ${
           data.dashboard.kpis.estado_pago === 'ENVIADA' || data.dashboard.kpis.estado_pago === 'PAGADO'
-            ? 'from-green-500 to-green-700'
-            : 'from-yellow-500 to-yellow-700'
-        } rounded-lg p-6 text-white`}>
+            ? 'bg-green-50 border-green-200'
+            : 'bg-yellow-50 border-yellow-200'
+        }`}>
           <div className="flex items-center justify-between mb-4">
             {data.dashboard.kpis.estado_pago === 'ENVIADA' || data.dashboard.kpis.estado_pago === 'PAGADO' ? (
-              <CheckCircle2 className="w-8 h-8 opacity-80" />
+              <CheckCircle2 className="w-8 h-8 text-green-600" />
             ) : (
-              <Clock className="w-8 h-8 opacity-80" />
+              <Clock className="w-8 h-8 text-yellow-600" />
             )}
           </div>
-          <p className="text-sm opacity-90 mb-1">Estado del Pago</p>
-          <p className="text-2xl font-bold">{data.dashboard.kpis.estado_pago}</p>
-          <p className="text-xs opacity-80 mt-2">{data.pago.referencia_bancaria || 'Sin referencia'}</p>
+          <p className={`text-sm font-medium mb-1 ${
+            data.dashboard.kpis.estado_pago === 'ENVIADA' || data.dashboard.kpis.estado_pago === 'PAGADO'
+              ? 'text-green-700'
+              : 'text-yellow-700'
+          }`}>Estado del Pago</p>
+          <p className={`text-2xl font-bold ${
+            data.dashboard.kpis.estado_pago === 'ENVIADA' || data.dashboard.kpis.estado_pago === 'PAGADO'
+              ? 'text-green-600'
+              : 'text-yellow-600'
+          }`}>{data.dashboard.kpis.estado_pago}</p>
+          <p className={`text-xs mt-2 ${
+            data.dashboard.kpis.estado_pago === 'ENVIADA' || data.dashboard.kpis.estado_pago === 'PAGADO'
+              ? 'text-green-600'
+              : 'text-yellow-600'
+          }`}>{data.pago.referencia_bancaria || 'Sin referencia'}</p>
         </div>
       </div>
 

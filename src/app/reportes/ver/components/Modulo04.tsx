@@ -229,49 +229,48 @@ export default function Modulo04({ data }: Modulo04Props) {
       {/* KPIs - ACTUALIZADOS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI 1: Trabajadores */}
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-6 text-white">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-2">
-            <Users className="w-8 h-8 opacity-80" />
-            <div className="text-3xl font-bold">{numTrabajadores}</div>
+            <Users className="w-8 h-8 text-blue-600" />
+            <div className="text-3xl font-bold text-blue-600">{numTrabajadores}</div>
           </div>
-          <div className="text-sm opacity-90">Trabajadores</div>
-          <div className="text-xs opacity-75 mt-1">Cotizantes activos</div>
+          <div className="text-sm text-blue-700 font-medium">Trabajadores</div>
+          <div className="text-xs text-blue-600 mt-1">Cotizantes activos</div>
         </div>
 
         {/* KPI 2: Promedio SDI */}
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-6 text-white">
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-2">
-            <TrendingUp className="w-8 h-8 opacity-80" />
-            <div className="text-3xl font-bold">
+            <TrendingUp className="w-8 h-8 text-purple-600" />
+            <div className="text-3xl font-bold text-purple-600">
               ${promedioSDICalculado.toLocaleString('es-MX', { maximumFractionDigits: 0 })}
             </div>
           </div>
-          <div className="text-sm opacity-90">Promedio SDI</div>
-          <div className="text-xs opacity-75 mt-1">Salario Diario Integrado</div>
+          <div className="text-sm text-purple-700 font-medium">Promedio SDI</div>
+          <div className="text-xs text-purple-600 mt-1">Salario Diario Integrado</div>
         </div>
 
         {/* KPI 3: Cuota Patronal */}
-        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-6 text-white">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-2">
-            <Building2 className="w-8 h-8 opacity-80" />
-            <div className="text-2xl font-bold">
+            <Building2 className="w-8 h-8 text-green-600" />
+            <div className="text-2xl font-bold text-green-600">
               ${totalCuotaPatronal.toLocaleString('es-MX', { maximumFractionDigits: 0 })}
             </div>
           </div>
-          <div className="text-sm opacity-90">Cuota Patronal</div>
-          <div className="text-xs opacity-75 mt-1">Aportación empresa</div>
-        </div>
+          <div className="text-sm text-green-700 font-medium">Cuota Patronal</div>
+          </div>
 
         {/* KPI 4: Cuota Obrera */}
-        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-6 text-white">
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-2">
-            <DollarSign className="w-8 h-8 opacity-80" />
-            <div className="text-2xl font-bold">
+            <DollarSign className="w-8 h-8 text-orange-600" />
+            <div className="text-2xl font-bold text-orange-600">
               ${totalCuotaObrera.toLocaleString('es-MX', { maximumFractionDigits: 0 })}
             </div>
           </div>
-          <div className="text-sm opacity-90">Cuota Obrera</div>
-          <div className="text-xs opacity-75 mt-1">Descuentos trabajadores</div>
+          <div className="text-sm text-orange-700 font-medium">Cuota Obrera</div>
+          <div className="text-xs text-orange-600 mt-1">Descuentos trabajadores</div>
         </div>
       </div>
 
@@ -571,7 +570,7 @@ export default function Modulo04({ data }: Modulo04Props) {
         {/* Tab: Análisis */}
         {activeTab === 'analisis' && (
           <div className="p-6 space-y-6">
-            <div className="bg-gradient-to-br from-bechapra-primary to-bechapra-primary-dark rounded-lg p-6 text-white">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
               <h4 className="text-lg font-semibold mb-4">Costo Promedio por Trabajador</h4>
               <div className="text-4xl font-bold mb-2">
                 ${costoPromedioTrabajador.toLocaleString('es-MX', { minimumFractionDigits: 2 })}

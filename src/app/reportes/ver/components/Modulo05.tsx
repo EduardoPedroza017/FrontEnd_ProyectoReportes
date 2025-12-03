@@ -133,40 +133,57 @@ export default function Modulo05({ data }: Modulo05Props) {
             {/* KPIs Principales */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* ISN del Mes */}
-              <div className="bg-gradient-to-br from-purple-500 to-purple-700 text-white rounded-lg p-6">
-                <DollarSign className="w-8 h-8 mb-2 opacity-80" />
-                <p className="text-sm opacity-90 mb-1">ISN del Mes</p>
-                <p className="text-3xl font-bold">{formatCurrency(data.dashboard?.kpis?.isn_mes || 0)}</p>
-                <p className="text-sm opacity-75 mt-2">{data.dashboard?.kpis?.periodo || 'N/A'}</p>
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                <DollarSign className="w-8 h-8 mb-2 text-purple-600" />
+                <p className="text-sm text-purple-700 font-medium mb-1">ISN del Mes</p>
+                <p className="text-3xl font-bold text-purple-600">{formatCurrency(data.dashboard?.kpis?.isn_mes || 0)}</p>
+                <p className="text-sm text-purple-600 mt-2">{data.dashboard?.kpis?.periodo || 'N/A'}</p>
               </div>
 
               {/* Base Gravable */}
-              <div className="bg-gradient-to-br from-green-500 to-green-700 text-white rounded-lg p-6">
-                <TrendingUp className="w-8 h-8 mb-2 opacity-80" />
-                <p className="text-sm opacity-90 mb-1">Base Gravable</p>
-                <p className="text-3xl font-bold">{formatCurrency(data.dashboard?.kpis?.base_gravable || 0)}</p>
-                <p className="text-sm opacity-75 mt-2">Total erogaciones</p>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                <TrendingUp className="w-8 h-8 mb-2 text-green-600" />
+                <p className="text-sm text-green-700 font-medium mb-1">Base Gravable</p>
+                <p className="text-3xl font-bold text-green-600">{formatCurrency(data.dashboard?.kpis?.base_gravable || 0)}</p>
+                <p className="text-sm text-green-600 mt-2">Total erogaciones</p>
               </div>
 
               {/* Empleados */}
-              <div className="bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-lg p-6">
-                <Users className="w-8 h-8 mb-2 opacity-80" />
-                <p className="text-sm opacity-90 mb-1">Empleados</p>
-                <p className="text-3xl font-bold">{data.dashboard?.kpis?.num_empleados || 0}</p>
-                <p className="text-sm opacity-75 mt-2">Activos en nómina</p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <Users className="w-8 h-8 mb-2 text-blue-600" />
+                <p className="text-sm text-blue-700 font-medium mb-1">Empleados</p>
+                <p className="text-3xl font-bold text-blue-600">{data.dashboard?.kpis?.num_empleados || 0}</p>
+                <p className="text-sm text-blue-600 mt-2">Activos en nómina</p>
               </div>
 
               {/* Estado de Pago */}
               <div
-                className={`bg-gradient-to-br ${
+                className={`border-2 rounded-lg p-6 ${
                   data.dashboard?.cumplimiento?.estado_pago === 'PAGADO'
-                    ? 'from-green-500 to-green-700'
-                    : 'from-yellow-500 to-yellow-700'
-                } text-white rounded-lg p-6`}
+                    ? 'bg-green-50 border-green-200'
+                    : 'bg-yellow-50 border-yellow-200'
+                }`}
               >
-                <CheckCircle2 className="w-8 h-8 mb-2 opacity-80" />
-                <p className="text-sm opacity-90 mb-1">Estado</p>
-                <p className="text-3xl font-bold">{data.dashboard?.cumplimiento?.estado_pago || 'N/A'}</p>
+                <CheckCircle2 className={`w-8 h-8 mb-2 ${
+                  data.dashboard?.cumplimiento?.estado_pago === 'PAGADO'
+                    ? 'text-green-600'
+                    : 'text-yellow-600'
+                }`} />
+                <p className={`text-sm font-medium mb-1 ${
+                  data.dashboard?.cumplimiento?.estado_pago === 'PAGADO'
+                    ? 'text-green-700'
+                    : 'text-yellow-700'
+                }`}>Estado</p>
+                <p className={`text-3xl font-bold ${
+                  data.dashboard?.cumplimiento?.estado_pago === 'PAGADO'
+                    ? 'text-green-600'
+                    : 'text-yellow-600'
+                }`}>{data.dashboard?.cumplimiento?.estado_pago || 'N/A'}</p>
+                <p className={`text-sm mt-2 ${
+                  data.dashboard?.cumplimiento?.estado_pago === 'PAGADO'
+                    ? 'text-green-600'
+                    : 'text-yellow-600'
+                }`}> </p>
                 <p className="text-sm opacity-75 mt-2">
                   {data.dashboard?.cumplimiento?.dias_anticipacion
                     ? `${data.dashboard.cumplimiento.dias_anticipacion} días anticipación`
@@ -550,25 +567,25 @@ export default function Modulo05({ data }: Modulo05Props) {
             {/* KPIs del Año */}
             {data.historico?.acumulado && data.historico?.promedios && data.historico?.proyeccion && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-lg p-6">
-                  <DollarSign className="w-8 h-8 mb-2 opacity-80" />
-                  <p className="text-sm opacity-90 mb-1">ISN Acumulado</p>
-                  <p className="text-3xl font-bold">{formatCurrency(data.historico.acumulado.total || 0)}</p>
-                  <p className="text-sm opacity-75 mt-2">{data.historico.acumulado.num_meses} meses</p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                  <DollarSign className="w-8 h-8 mb-2 text-blue-600" />
+                  <p className="text-sm text-blue-700 font-medium mb-1">ISN Acumulado</p>
+                  <p className="text-3xl font-bold text-blue-600">{formatCurrency(data.historico.acumulado.total || 0)}</p>
+                  <p className="text-sm text-blue-600 mt-2">{data.historico.acumulado.num_meses} meses</p>
                 </div>
 
-                <div className="bg-gradient-to-br from-green-500 to-green-700 text-white rounded-lg p-6">
-                  <BarChart3 className="w-8 h-8 mb-2 opacity-80" />
-                  <p className="text-sm opacity-90 mb-1">Promedio Mensual</p>
-                  <p className="text-3xl font-bold">{formatCurrency(data.historico.promedios.mensual || 0)}</p>
-                  <p className="text-sm opacity-75 mt-2">{data.historico.promedios.empleados} empleados promedio</p>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                  <BarChart3 className="w-8 h-8 mb-2 text-green-600" />
+                  <p className="text-sm text-green-700 font-medium mb-1">Promedio Mensual</p>
+                  <p className="text-3xl font-bold text-green-600">{formatCurrency(data.historico.promedios.mensual || 0)}</p>
+                  <p className="text-sm text-green-600 mt-2">{data.historico.promedios.empleados} empleados promedio</p>
                 </div>
 
-                <div className="bg-gradient-to-br from-purple-500 to-purple-700 text-white rounded-lg p-6">
-                  <TrendingUp className="w-8 h-8 mb-2 opacity-80" />
-                  <p className="text-sm opacity-90 mb-1">Proyección Anual</p>
-                  <p className="text-3xl font-bold">{formatCurrency(data.historico.proyeccion.anual || 0)}</p>
-                  <p className="text-sm opacity-75 mt-2">Estimado 12 meses</p>
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                  <TrendingUp className="w-8 h-8 mb-2 text-purple-600" />
+                  <p className="text-sm text-purple-700 font-medium mb-1">Proyección Anual</p>
+                  <p className="text-3xl font-bold text-purple-600">{formatCurrency(data.historico.proyeccion.anual || 0)}</p>
+                  <p className="text-sm text-purple-600 mt-2">Estimado 12 meses</p>
                 </div>
               </div>
             )}
@@ -884,13 +901,13 @@ export default function Modulo05({ data }: Modulo05Props) {
           <div className="space-y-6">
             {/* Predicción Siguiente Mes */}
             {data.predicciones?.prediccion_siguiente_mes && data.predicciones.prediccion_siguiente_mes.estimado && (
-              <div className="bg-gradient-to-br from-purple-500 to-purple-700 text-white rounded-lg p-8">
-                <h3 className="text-xl font-semibold mb-4">Predicción Siguiente Mes</h3>
+              <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-8">
+                <h3 className="text-xl font-semibold text-purple-900 mb-4">Predicción Siguiente Mes</h3>
                 <div className="text-center">
-                  <p className="text-5xl font-bold mb-3">
+                  <p className="text-5xl font-bold text-purple-600 mb-3">
                     {formatCurrency(data.predicciones.prediccion_siguiente_mes.estimado)}
                   </p>
-                  <p className="text-lg opacity-90">
+                  <p className="text-lg text-purple-700">
                     Rango: {formatCurrency(data.predicciones.prediccion_siguiente_mes.rango_min)} -{' '}
                     {formatCurrency(data.predicciones.prediccion_siguiente_mes.rango_max)}
                   </p>

@@ -105,6 +105,22 @@ export const api = {
     return await response.json()
   },
 
+   // Módulo 07: FONACOT
+  uploadFonacot: async (cedula: File, ficha: File, comprobante?: File) => {
+    const formData = new FormData()
+    formData.append('cedula', cedula)
+    formData.append('ficha', ficha)
+    if (comprobante) formData.append('comprobante', comprobante)
+    
+    const response = await fetch(`${API_BASE_URL}/upload-fonacot`, {
+      method: 'POST',
+      body: formData
+    })
+    
+    if (!response.ok) throw new Error('Error al procesar FONACOT')
+    return await response.json()
+  },
+
   // Generar PDF completo con todos los módulos
   generarPDFCompleto: async (datos: any): Promise<Blob> => {
     const response = await fetch(`${API_BASE_URL}/generar-reporte-completo`, {

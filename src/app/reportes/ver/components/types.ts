@@ -6,6 +6,7 @@ export interface ReporteData {
   modulo4?: Modulo04Data
   modulo5?: Modulo05Data
   modulo6?: Modulo6Data
+  modulo7?: Modulo07Data
 }
 
 export interface Modulo1Data {
@@ -538,6 +539,74 @@ export interface TendenciasNomina {
   promedio_empleado: number[]
 }
 
+
+// ============================================
+// MÓDULO 07: FONACOT
+// ============================================
+
+export interface Modulo07Data {
+  success: boolean
+  trabajadores: TrabajadorFonacot[]
+  resumen: ResumenFonacot
+  pago: PagoFonacot
+  conciliacion: ConciliacionFonacot
+  alertas: AlertaFonacot[]
+  dashboard: DashboardFonacot
+}
+
+export interface TrabajadorFonacot {
+  no_fonacot: string
+  no_credito: string
+  nss: string
+  rfc: string
+  nombre: string
+  cuotas_pagadas: number
+  plazo_total: number
+  progreso: number
+  saldo_pendiente: number
+  retencion_mensual: number
+}
+
+export interface ResumenFonacot {
+  num_trabajadores: number
+  num_creditos: number
+  total_a_pagar: number
+  promedio_por_empleado: number
+  credito_mayor_descuento?: TrabajadorFonacot
+  proximos_a_liquidar: TrabajadorFonacot[]
+}
+
+export interface PagoFonacot {
+  referencia_bancaria: string
+  fecha_programada: string
+  fecha_limite: string
+  fecha_pago_real?: string
+  estado: string
+}
+
+export interface ConciliacionFonacot {
+  monto_cedula: number
+  monto_ficha: number
+  monto_pagado?: number
+  conciliado: boolean
+}
+
+export interface AlertaFonacot {
+  tipo: 'error' | 'warning' | 'info'
+  titulo: string
+  mensaje: string
+}
+
+export interface DashboardFonacot {
+  kpis: {
+    total_a_pagar: number
+    num_trabajadores: number
+    num_creditos: number
+    estado_pago: string
+  }
+}
+
+//*---------------------------------------------*//
 
 
 export interface Factura {

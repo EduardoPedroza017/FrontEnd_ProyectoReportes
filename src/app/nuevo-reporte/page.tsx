@@ -461,6 +461,30 @@ export default function NuevoReportePage() {
               }
               break
 
+              case 7: // FONACOT
+              const cedulaFonacotSlot = module.fileSlots.find(s => s.id === 'cedula')
+              const fichaFonacotSlot = module.fileSlots.find(s => s.id === 'ficha')
+              const comprobanteFonacotSlot = module.fileSlots.find(s => s.id === 'comprobante')
+              
+              console.log('🔍 Módulo 7 - cedulaFonacotSlot:', cedulaFonacotSlot)
+              console.log('🔍 Módulo 7 - fichaFonacotSlot:', fichaFonacotSlot)
+              console.log('🔍 Módulo 7 - comprobanteFonacotSlot:', comprobanteFonacotSlot)
+              
+              if (cedulaFonacotSlot?.file && fichaFonacotSlot?.file) {
+                console.log('✅ Procesando Módulo 7 (FONACOT)...')
+                results.modulo7 = await api.uploadFonacot(
+                  cedulaFonacotSlot.file as File,
+                  fichaFonacotSlot.file as File,
+                  comprobanteFonacotSlot?.file as File | undefined
+                )
+                console.log('✅ Respuesta Módulo 7:', results.modulo7)
+              } else {
+                console.warn('⚠️ Módulo 7: Faltan archivos obligatorios (cédula o ficha)')
+              }
+              break
+
+              //*--------------------------------------------*//
+
           }
         } catch (error: any) {
           console.error(`Error procesando módulo ${module.id}:`, error)
@@ -524,6 +548,7 @@ export default function NuevoReportePage() {
                   {key === 'modulo4' && '👥 SUA - Seguro Social'}
                   {key === 'modulo5' && '💰 ISN - Impuesto Sobre Nómina'}
                   {key === 'modulo6' && '👥 Nómina'}
+                  {key === 'modulo7' && '💳 FONACOT - Créditos'}
                 </h3>
                 
                 {value.success ? (
@@ -597,6 +622,27 @@ export default function NuevoReportePage() {
                           <p>• Estado: {value.dashboard?.estado_pago || 'PENDIENTE'}</p>
                           {value.dashboard?.alertas && value.dashboard.alertas.length > 0 && (
                             <p className="text-yellow-600">• Alertas: {value.dashboard.alertas.length}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {key === 'modulo7' && (
+                      <div>
+                        <div className="flex items-center gap-2 text-green-600 mb-2">
+                          <CheckCircle2 className="w-5 h-5" />
+                          <span className="font-medium">Procesado correctamente</span>
+                        </div>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <p>• Trabajadores: {value.resumen?.num_trabajadores || 0}</p>
+                          <p>• Créditos activos: {value.resumen?.num_creditos || 0}</p>
+                          <p>• Total a pagar: ${value.resumen?.total_a_pagar?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'}</p>
+                          <p>• Estado: {value.pago?.estado || 'PENDIENTE'}</p>
+                          {value.resumen?.proximos_a_liquidar && value.resumen.proximos_a_liquidar.length > 0 && (
+                            <p className="text-green-600">• Próximos a liquidar: {value.resumen.proximos_a_liquidar.length}</p>
+                          )}
+                          {value.alertas && value.alertas.length > 0 && (
+                            <p className="text-yellow-600">• Alertas: {value.alertas.length}</p>
                           )}
                         </div>
                       </div>

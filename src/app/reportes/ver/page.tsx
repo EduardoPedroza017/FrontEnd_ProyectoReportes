@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { ArrowLeft, Download, FileText, Building2, Users, } from 'lucide-react'
+import { ArrowLeft, Download, FileText, Building2, Users, CreditCard, } from 'lucide-react'
 import { DollarSign } from 'lucide-react'
 import Link from 'next/link'
 import Modulo01 from './components/Modulo01'
@@ -10,6 +10,7 @@ import Modulo03 from './components/Modulo03'
 import Modulo04 from './components/Modulo04'
 import Modulo05 from './components/Modulo05'
 import Modulo06 from './components/Modulo06'
+import Modulo07 from './components/Modulo07'
 import { ReporteData } from './components/types'
 
 
@@ -179,6 +180,7 @@ export default function VerReportePage() {
   const tieneModulo04 = reporteData?.modulo4?.success
   const tieneModulo05 = reporteData?.modulo5?.success
   const tieneModulo06 = reporteData?.modulo6?.success 
+  const tieneModulo07 = reporteData.modulo7?.success === true
 
   return (
     <div className="min-h-screen bg-bechapra-light-3">
@@ -304,7 +306,6 @@ export default function VerReportePage() {
         </div>
         )}
 
-        {/* ===== AGREGAR ESTE BLOQUE COMPLETO ===== */}
         {/* Módulo 06: Nómina */}
         {tieneModulo06 && reporteData.modulo6 && (
         <div className="bg-white rounded-lg border border-bechapra-border p-6">
@@ -324,10 +325,29 @@ export default function VerReportePage() {
             <Modulo06 data={reporteData.modulo6} />
         </div>
         )}
-        {/* ===== FIN DEL BLOQUE ===== */}
+        
+        {/* Módulo 07: FONACOT */}
+        {tieneModulo07 && reporteData.modulo7 && (
+          <div className="bg-white rounded-lg border border-bechapra-border p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center">
+                <CreditCard className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-bechapra-text-primary">
+                  Módulo 07: FONACOT
+                </h2>
+                <p className="text-sm text-bechapra-text-secondary">
+                  Análisis de créditos y descuentos FONACOT
+                </p>
+              </div>
+            </div>
+            <Modulo07 data={reporteData.modulo7} />
+          </div>
+        )}
 
         {/* Mensaje si no hay módulos */}
-        {!tieneModulo01 && !tieneModulo03 && !tieneModulo04 && !tieneModulo05 && !tieneModulo06 && (
+        {!tieneModulo01 && !tieneModulo03 && !tieneModulo04 && !tieneModulo05 && !tieneModulo06 && !tieneModulo07 && (
         <div className="bg-white rounded-lg border border-bechapra-border p-12 text-center">
             {/* ... código de mensaje vacío ... */}
         </div>
@@ -336,7 +356,7 @@ export default function VerReportePage() {
           {/* Mensaje si no hay módulos */}
           {!tieneModulo01 && !tieneModulo03 && (
             <div className="bg-white rounded-lg border border-bechapra-border p-12 text-center">
-              <div className="text-6xl mb-4">📊</div>
+              <div className="text-6xl mb-4"></div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 No hay módulos procesados
               </h3>

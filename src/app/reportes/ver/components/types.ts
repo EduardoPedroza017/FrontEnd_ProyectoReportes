@@ -5,6 +5,7 @@ export interface ReporteData {
   modulo3?: Modulo3Data
   modulo4?: Modulo04Data
   modulo5?: Modulo05Data
+  modulo6?: Modulo6Data
 }
 
 export interface Modulo1Data {
@@ -343,6 +344,200 @@ export interface Modulo05Data {
   }
   alertas?: Array<{ tipo: string; mensaje: string }>
 }
+
+export interface Modulo6Data {
+  success: boolean
+  tipo_nomina: 'semanal' | 'quincenal' | 'mensual'
+  dashboard: DashboardNomina
+  empleados: EmpleadoNomina[]
+  calculos: CalculosNomina
+  incidencias: IncidenciasNomina
+  cfdi: CFDINomina
+  dispersion: DispersionNomina
+  historico: HistoricoNomina
+}
+
+// Dashboard - KPIs principales
+export interface DashboardNomina {
+  nomina_total: number
+  periodo: string
+  num_empleados: number
+  promedio_empleado: number
+  total_deducciones: number
+  estado_pago: 'PAGADO' | 'PENDIENTE' | 'PARCIAL'
+  fecha_pago: string
+  alertas: AlertaNomina[]
+}
+
+export interface AlertaNomina {
+  tipo: 'error' | 'warning' | 'info'
+  mensaje: string
+  empleado?: string
+  detalle?: string
+}
+
+// Empleados
+export interface EmpleadoNomina {
+  numero: number | string
+  nombre: string
+  rfc: string
+  nss: string
+  curp: string
+  puesto: string
+  departamento: string
+  antiguedad: string | number
+  salario_diario: number
+  sdi: number
+  dias_trabajados: number
+  percepciones: {
+    [concepto: string]: number
+  }
+  deducciones: {
+    [concepto: string]: number
+  }
+  total_percepciones: number
+  total_deducciones: number
+  neto: number
+  tiene_cfdi?: boolean
+  tiene_comprobante?: boolean
+}
+
+// Cálculos
+export interface CalculosNomina {
+  percepciones: {
+    [concepto: string]: {
+      total: number
+      empleados: number
+    }
+  }
+  deducciones: {
+    [concepto: string]: {
+      total: number
+      empleados: number
+    }
+  }
+  totales: TotalesNomina
+}
+
+export interface TotalesNomina {
+  total_percepciones: number
+  total_deducciones: number
+  total_neto: number
+  num_empleados: number
+  promedio_neto: number
+}
+
+// Incidencias
+export interface IncidenciasNomina {
+  total_incidencias: number
+  por_tipo: {
+    [tipo: string]: number
+  }
+  detalle: IncidenciaDetalle[]
+}
+
+export interface IncidenciaDetalle {
+  empleado: string
+  tipo: string
+  fecha: string
+  dias: number
+  monto: number
+  descripcion: string
+}
+
+// CFDI
+export interface CFDINomina {
+  total_cfdi: number
+  timbrados: number
+  pendientes: number
+  errores: number
+  detalle: CFDIDetalle[]
+  validacion: ValidacionCFDI
+}
+
+export interface CFDIDetalle {
+  empleado: string
+  uuid: string
+  fecha_timbrado: string
+  total: number
+  pdf_disponible: boolean
+  xml_disponible: boolean
+  valido: boolean
+}
+
+export interface ValidacionCFDI {
+  total_validados: number
+  coinciden: number
+  diferencias: DiferenciaCFDI[]
+}
+
+export interface DiferenciaCFDI {
+  empleado: string
+  monto_nomina: number
+  monto_cfdi: number
+  diferencia: number
+}
+
+// Dispersión Bancaria
+export interface DispersionNomina {
+  fecha: string
+  banco: string
+  cuenta: string
+  total_dispersado: number
+  num_pagos: number
+  resumen: ResumenDispersion
+  detalle: PagoDispersion[]
+}
+
+export interface ResumenDispersion {
+  exitosos: number
+  pendientes: number
+  rechazados: number
+  monto_exitoso: number
+  monto_pendiente: number
+  monto_rechazado: number
+}
+
+export interface PagoDispersion {
+  empleado: string
+  cuenta: string
+  banco: string
+  monto: number
+  referencia: string
+  estado: 'EXITOSO' | 'PENDIENTE' | 'RECHAZADO'
+  fecha_aplicacion?: string
+}
+
+// Histórico
+export interface HistoricoNomina {
+  periodos: PeriodoHistorico[]
+  estadisticas: EstadisticasHistoricas
+  tendencias: TendenciasNomina
+}
+
+export interface PeriodoHistorico {
+  periodo: string
+  tipo: 'semanal' | 'quincenal' | 'mensual'
+  num_empleados: number
+  total_neto: number
+  promedio_empleado: number
+  fecha_pago: string
+}
+
+export interface EstadisticasHistoricas {
+  promedio_mensual: number
+  desviacion_estandar: number
+  crecimiento_anual: number
+  rotacion_empleados: number
+}
+
+export interface TendenciasNomina {
+  meses: string[]
+  nomina_total: number[]
+  empleados: number[]
+  promedio_empleado: number[]
+}
+
 
 
 export interface Factura {

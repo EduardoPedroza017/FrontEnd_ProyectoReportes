@@ -58,6 +58,7 @@ interface FileSlot {
   required: boolean
   multiple?: boolean
   file?: FileWithPreview | FileWithPreview[]
+  options?: string[]
 }
 
 // Configuración de módulos con iconos Lucide
@@ -126,15 +127,53 @@ const initialModules: ModuleData[] = [
     files: []
   },
   {
-    id: 6,
-    name: 'Módulo 06: Nómina',
-    subtitle: 'Procesa nómina, CFDI e incidencias',
-    icon: Users,
-    status: 'ready',
-    acceptedTypes: ['.xlsx', '.xls', '.pdf', '.xml'],
-    fileSlots: [],
-    files: []
-  },
+  id: 6,
+  name: 'Módulo 06: Nómina',
+  subtitle: 'Gestión de nómina y dispersión',
+  icon: Users,
+  status: 'ready',
+  acceptedTypes: ['.xlsx', '.xls', '.zip'],
+  fileSlots: [
+    { 
+      id: 'tipo', 
+      label: 'Tipo de nómina', 
+      accept: ['select'], 
+      required: true,
+      options: ['semanal', 'quincenal', 'mensual']
+    },
+    { 
+      id: 'excel', 
+      label: 'Excel de nómina', 
+      accept: ['.xlsx', '.xls'], 
+      required: true 
+    },
+    { 
+      id: 'incidencias', 
+      label: 'Excel de incidencias (Opcional)', 
+      accept: ['.xlsx', '.xls'], 
+      required: false 
+    },
+    { 
+      id: 'cfdi_pdfs', 
+      label: 'ZIP de CFDI PDFs (Opcional)', 
+      accept: ['.zip'], 
+      required: false 
+    },
+    { 
+      id: 'cfdi_xmls', 
+      label: 'ZIP de CFDI XMLs (Opcional)', 
+      accept: ['.zip'], 
+      required: false 
+    },
+    { 
+      id: 'comprobantes', 
+      label: 'ZIP de comprobantes (Opcional)', 
+      accept: ['.zip'], 
+      required: false 
+    },
+  ],
+  files: []
+},
   {
     id: 7,
     name: 'Módulo 07: FONACOT',
@@ -371,6 +410,57 @@ export default function NuevoReportePage() {
               console.warn('⚠️ Módulo 5: Faltan archivos (excel o línea de captura)')
             }
             break
+
+            case 6: // Nómina
+              const tipoSlot = module.fileSlots.find(s => s.id === 'tipo')
+              const excelNominaSlot = module.fileSlots.find(s => s.id === 'excel')
+              const incidenciasSlot = module.fileSlots.find(s => s.id === 'incidencias')
+              const cfdiPDFsSlot = module.fileSlots.find(s => s.id === 'cfdi_pdfs')
+              const cfdiXMLsSlot = module.fileSlots.find(s => s.id === 'cfdi_xmls')
+              const comprobantesSlot = module.fileSlots.find(s => s.id === 'comprobantes')
+              
+              console.log('🔍 Módulo 6 - tipoSlot:', tipoSlot)
+              console.log('🔍 Módulo 6 - excelNominaSlot:', excelNominaSlot)
+              
+              const tipoNomina = (tipoSlot as any)?.value || 'quincenal'
+              
+              if (excelNominaSlot?.file) {
+                console.log('✅ Procesando Módulo 6 (Nómina)...')
+                
+                const nominaFiles: any = {
+                  tipo: tipoNomina,
+                  excel: excelNominaSlot.file as File
+                }
+                
+                if (incidenciasSlot?.file) {
+                  nominaFiles.incidencias = incidenciasSlot.file as File
+                }
+                
+                if (cfdiPDFsSlot?.file) {
+                  nominaFiles.cfdi_pdfs = Array.isArray(cfdiPDFsSlot.file) 
+                    ? cfdiPDFsSlot.file 
+                    : [cfdiPDFsSlot.file]
+                }
+                
+                if (cfdiXMLsSlot?.file) {
+                  nominaFiles.cfdi_xmls = Array.isArray(cfdiXMLsSlot.file) 
+                    ? cfdiXMLsSlot.file 
+                    : [cfdiXMLsSlot.file]
+                }
+                
+                if (comprobantesSlot?.file) {
+                  nominaFiles.comprobantes = Array.isArray(comprobantesSlot.file) 
+                    ? comprobantesSlot.file 
+                    : [comprobantesSlot.file]
+                }
+                
+                results.modulo6 = await api.uploadNomina(nominaFiles)
+                console.log('✅ Respuesta Módulo 6:', results.modulo6)
+              } else {
+                console.warn('⚠️ Módulo 6: Falta archivo principal de nómina (excel)')
+              }
+              break
+
           }
         } catch (error: any) {
           console.error(`Error procesando módulo ${module.id}:`, error)
@@ -433,6 +523,7 @@ export default function NuevoReportePage() {
                   {key === 'modulo3' && '📋 XML - Facturas'}
                   {key === 'modulo4' && '👥 SUA - Seguro Social'}
                   {key === 'modulo5' && '💰 ISN - Impuesto Sobre Nómina'}
+                  {key === 'modulo6' && '👥 Nómina'}
                 </h3>
                 
                 {value.success ? (
@@ -488,6 +579,25 @@ export default function NuevoReportePage() {
                           <p>• Periodo: {value.dashboard?.kpis?.periodo}</p>
                           <p>• Empleados: {value.dashboard?.kpis?.num_empleados}</p>
                           <p>• ISN del mes: ${value.dashboard?.kpis?.isn_mes?.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {key === 'modulo6' && (
+                      <div>
+                        <div className="flex items-center gap-2 text-green-600 mb-2">
+                          <CheckCircle2 className="w-5 h-5" />
+                          <span className="font-medium">Procesado correctamente</span>
+                        </div>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <p>• Tipo de nómina: {value.tipo_nomina || 'N/A'}</p>
+                          <p>• Periodo: {value.dashboard?.periodo || 'N/A'}</p>
+                          <p>• Empleados: {value.dashboard?.num_empleados || 0}</p>
+                          <p>• Nómina total: ${value.dashboard?.nomina_total?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'}</p>
+                          <p>• Estado: {value.dashboard?.estado_pago || 'PENDIENTE'}</p>
+                          {value.dashboard?.alertas && value.dashboard.alertas.length > 0 && (
+                            <p className="text-yellow-600">• Alertas: {value.dashboard.alertas.length}</p>
+                          )}
                         </div>
                       </div>
                     )}

@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { ArrowLeft, Download, FileText, Building2 } from 'lucide-react'
+import { ArrowLeft, Download, FileText, Building2, Users, } from 'lucide-react'
 import { DollarSign } from 'lucide-react'
 import Link from 'next/link'
 import Modulo01 from './components/Modulo01'
 import Modulo03 from './components/Modulo03'
 import Modulo04 from './components/Modulo04'
 import Modulo05 from './components/Modulo05'
+import Modulo06 from './components/Modulo06'
 import { ReporteData } from './components/types'
 
 
@@ -177,6 +178,7 @@ export default function VerReportePage() {
   const tieneModulo03 = reporteData?.modulo3?.success
   const tieneModulo04 = reporteData?.modulo4?.success
   const tieneModulo05 = reporteData?.modulo5?.success
+  const tieneModulo06 = reporteData?.modulo6?.success 
 
   return (
     <div className="min-h-screen bg-bechapra-light-3">
@@ -292,6 +294,42 @@ export default function VerReportePage() {
             </div>
             </div>
             <Modulo05 data={reporteData.modulo5} />
+        </div>
+        )}
+
+        {/* Módulo 05: ISN */}
+        {tieneModulo05 && (
+        <div className="bg-white rounded-lg border border-bechapra-border p-6">
+            {/* ... código del módulo 05 ... */}
+        </div>
+        )}
+
+        {/* ===== AGREGAR ESTE BLOQUE COMPLETO ===== */}
+        {/* Módulo 06: Nómina */}
+        {tieneModulo06 && reporteData.modulo6 && (
+        <div className="bg-white rounded-lg border border-bechapra-border p-6">
+            <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                <Users className="w-6 h-6 text-white" />
+            </div>
+            <div>
+                <h2 className="text-xl font-bold text-bechapra-text-primary">
+                Módulo 06: Nómina
+                </h2>
+                <p className="text-sm text-bechapra-text-secondary">
+                Gestión y análisis de nómina empresarial
+                </p>
+            </div>
+            </div>
+            <Modulo06 data={reporteData.modulo6} />
+        </div>
+        )}
+        {/* ===== FIN DEL BLOQUE ===== */}
+
+        {/* Mensaje si no hay módulos */}
+        {!tieneModulo01 && !tieneModulo03 && !tieneModulo04 && !tieneModulo05 && !tieneModulo06 && (
+        <div className="bg-white rounded-lg border border-bechapra-border p-12 text-center">
+            {/* ... código de mensaje vacío ... */}
         </div>
         )}
 

@@ -11,6 +11,7 @@ import Modulo04 from './components/Modulo04'
 import Modulo05 from './components/Modulo05'
 import Modulo06 from './components/Modulo06'
 import Modulo07 from './components/Modulo07'
+import Modulo08 from './components/Modulo08'
 import { ReporteData } from './components/types'
 
 
@@ -181,6 +182,7 @@ export default function VerReportePage() {
   const tieneModulo05 = reporteData?.modulo5?.success
   const tieneModulo06 = reporteData?.modulo6?.success 
   const tieneModulo07 = reporteData.modulo7?.success === true
+  const tieneModulo08 = reporteData && 'modulo8' in reporteData
 
   return (
     <div className="min-h-screen bg-bechapra-light-3">
@@ -345,6 +347,26 @@ export default function VerReportePage() {
             <Modulo07 data={reporteData.modulo7} />
           </div>
         )}
+
+        {/* Módulo 08: Control Fiscal */}
+          {tieneModulo08 && reporteData.modulo8 && (
+            <div className="bg-white rounded-lg border border-bechapra-border p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-bechapra-text-primary">
+                    Módulo 08: Control Fiscal
+                  </h2>
+                  <p className="text-sm text-bechapra-text-secondary">
+                    Declaraciones ISR e IVA - Ejercicio {reporteData.modulo8.ejercicio}
+                  </p>
+                </div>
+              </div>
+              <Modulo08 data={reporteData.modulo8} />
+            </div>
+          )}
 
         {/* Mensaje si no hay módulos */}
         {!tieneModulo01 && !tieneModulo03 && !tieneModulo04 && !tieneModulo05 && !tieneModulo06 && !tieneModulo07 && (

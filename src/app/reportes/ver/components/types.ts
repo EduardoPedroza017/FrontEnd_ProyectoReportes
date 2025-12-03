@@ -7,6 +7,7 @@ export interface ReporteData {
   modulo5?: Modulo05Data
   modulo6?: Modulo6Data
   modulo7?: Modulo07Data
+  modulo8?: Modulo08Data 
 }
 
 export interface Modulo1Data {
@@ -604,6 +605,92 @@ export interface DashboardFonacot {
     num_creditos: number
     estado_pago: string
   }
+}
+
+// ============================================
+// MÓDULO 08: CONTROL FISCAL
+// ============================================
+
+export interface Modulo08Data {
+  success: boolean
+  excel: ExcelFiscal
+  resumen: ResumenFiscalCompleto
+  kpis: KPIsFiscales
+  declaraciones?: DeclaracionesFiscales
+  ejercicio: number
+}
+
+export interface ExcelFiscal {
+  rfc: string
+  razon_social: string
+  ejercicio: number
+  meses_con_datos: number
+}
+
+export interface ResumenFiscalCompleto {
+  resumen: ResumenImpuestosData
+  kpis?: KPIsFiscales | null
+}
+
+export interface ResumenImpuestosData {
+  rfc: string
+  razon_social: string
+  ejercicio: number
+  meses: MesFiscal[]
+  total_isr: number
+  total_iva: number
+  total_retenciones: number
+  total_anual: number
+}
+
+export interface MesFiscal {
+  mes: string
+  isr_persona_moral: number
+  isr_retenciones: number
+  iva_mensual: number
+  iva_retenciones: number
+  total_mes: number
+}
+
+export interface KPIsFiscales {
+  ejercicio: number
+  total_ingresos: number
+  total_egresos: number
+  total_isr_pagado: number
+  total_iva_pagado: number
+  total_impuestos: number
+  promedio_mensual_ingresos: number
+  promedio_mensual_isr: number
+  promedio_mensual_iva: number
+  carga_fiscal: number
+  efectividad_cobro: number
+  nivel_deducciones: number
+  declaraciones_presentadas: number
+  declaraciones_pendientes: number
+  porcentaje_cumplimiento: number
+  proyeccion_isr_anual: number
+  proyeccion_iva_anual: number
+  meses_transcurridos: number
+}
+
+export interface DeclaracionesFiscales {
+  total: number
+  declaraciones: DeclaracionPDF[]
+}
+
+export interface DeclaracionPDF {
+  filename: string
+  tipo: string // ACUSE, LINEA_CAPTURA, COMPROBANTE_PAGO
+  impuesto: string // ISR, IVA, RETENCIONES
+  mes: string
+  ejercicio: number
+  numero_operacion?: string
+  monto?: number
+  fecha_presentacion?: string
+  fecha_pago?: string
+  linea_captura?: string
+  ruta_archivo: string
+  fecha_carga: string
 }
 
 //*---------------------------------------------*//

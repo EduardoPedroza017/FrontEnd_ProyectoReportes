@@ -344,28 +344,25 @@ export default function NuevoReportePage() {
               }
               break
               
-            case 3: // XML
-            const excelSlot = module.fileSlots.find(s => s.id === 'excel')
-            const emitidosSlot = module.fileSlots.find(s => s.id === 'emitidos')
-            const recibidosSlot = module.fileSlots.find(s => s.id === 'recibidos')
-            
-            // ✅ AGREGAR ESTOS LOGS
-            console.log('🔍 Módulo 3 - excelSlot:', excelSlot)
-            console.log('🔍 Módulo 3 - emitidosSlot:', emitidosSlot)
-            console.log('🔍 Módulo 3 - recibidosSlot:', recibidosSlot)
-            
-            if (excelSlot?.file && emitidosSlot?.file && recibidosSlot?.file) {
-              console.log('✅ Procesando Módulo 3...')
-              results.modulo3 = await api.uploadXML(
-                excelSlot.file as File,
-                emitidosSlot.file as File,
-                recibidosSlot.file as File
-              )
-              console.log('✅ Respuesta Módulo 3:', results.modulo3)
-            } else {
-              console.warn('⚠️ Módulo 3: Faltan archivos')
-            }
-            break
+            case 3:
+              // Módulo 03: XML - Facturas
+              const excelXmlSlot = module.fileSlots.find(s => s.id === 'excel')
+              const emitidosXmlSlot = module.fileSlots.find(s => s.id === 'emitidos')
+              const recibidosXmlSlot = module.fileSlots.find(s => s.id === 'recibidos')
+              
+              if (excelXmlSlot && excelXmlSlot.file && emitidosXmlSlot && emitidosXmlSlot.file && recibidosXmlSlot && recibidosXmlSlot.file) {
+                const excel = excelXmlSlot.file as File
+                const emitidos = emitidosXmlSlot.file as File
+                const recibidos = recibidosXmlSlot.file as File
+                
+                console.log('📋 Procesando Módulo 03: XML')
+                const modulo3Data = await api.uploadXML(excel, emitidos, recibidos)
+                results.modulo3 = modulo3Data
+                console.log('✅ Módulo 3 completado:', modulo3Data)
+              } else {
+                console.warn('⚠️ Módulo 3: Faltan archivos obligatorios')
+              }
+              break
               
             case 4: // SUA
               const cedulaSlot = module.fileSlots.find(s => s.id === 'cedula')
@@ -411,53 +408,43 @@ export default function NuevoReportePage() {
             }
             break
 
-            case 6: // Nómina
-              const tipoSlot = module.fileSlots.find(s => s.id === 'tipo')
+            case 6:
+              // Módulo 06: Nómina
+              const tipoNominaSlot = module.fileSlots.find(s => s.id === 'tipo')
               const excelNominaSlot = module.fileSlots.find(s => s.id === 'excel')
-              const incidenciasSlot = module.fileSlots.find(s => s.id === 'incidencias')
-              const cfdiPDFsSlot = module.fileSlots.find(s => s.id === 'cfdi_pdfs')
-              const cfdiXMLsSlot = module.fileSlots.find(s => s.id === 'cfdi_xmls')
-              const comprobantesSlot = module.fileSlots.find(s => s.id === 'comprobantes')
+              const incidenciasNominaSlot = module.fileSlots.find(s => s.id === 'incidencias')
+              const cfdiPdfsNominaSlot = module.fileSlots.find(s => s.id === 'cfdi_pdfs')
+              const cfdiXmlsNominaSlot = module.fileSlots.find(s => s.id === 'cfdi_xmls')
+              const comprobantesNominaSlot = module.fileSlots.find(s => s.id === 'comprobantes')
               
-              console.log('🔍 Módulo 6 - tipoSlot:', tipoSlot)
-              console.log('🔍 Módulo 6 - excelNominaSlot:', excelNominaSlot)
+              // Determinar tipo de nómina
+              let tipoNomina = 'mensual'
+              if (tipoNominaSlot && tipoNominaSlot.file) {
+                const tipoFile = tipoNominaSlot.file as File
+                const tipoText = await tipoFile.text()
+                tipoNomina = tipoText.trim().toLowerCase()
+              }
               
-              const tipoNomina = (tipoSlot as any)?.value || 'quincenal'
-              
-              if (excelNominaSlot?.file) {
-                console.log('✅ Procesando Módulo 6 (Nómina)...')
+              if (excelNominaSlot && excelNominaSlot.file) {
+                const excel = excelNominaSlot.file as File
+                const incidencias = incidenciasNominaSlot && incidenciasNominaSlot.file ? incidenciasNominaSlot.file as File : undefined
+                const cfdi_pdfs = cfdiPdfsNominaSlot && Array.isArray(cfdiPdfsNominaSlot.file) ? cfdiPdfsNominaSlot.file as File[] : undefined
+                const cfdi_xmls = cfdiXmlsNominaSlot && Array.isArray(cfdiXmlsNominaSlot.file) ? cfdiXmlsNominaSlot.file as File[] : undefined
+                const comprobantes = comprobantesNominaSlot && Array.isArray(comprobantesNominaSlot.file) ? comprobantesNominaSlot.file as File[] : undefined
                 
-                const nominaFiles: any = {
+                console.log('👥 Procesando Módulo 06: Nómina')
+                const modulo6Data = await api.uploadNomina({
                   tipo: tipoNomina,
-                  excel: excelNominaSlot.file as File
-                }
-                
-                if (incidenciasSlot?.file) {
-                  nominaFiles.incidencias = incidenciasSlot.file as File
-                }
-                
-                if (cfdiPDFsSlot?.file) {
-                  nominaFiles.cfdi_pdfs = Array.isArray(cfdiPDFsSlot.file) 
-                    ? cfdiPDFsSlot.file 
-                    : [cfdiPDFsSlot.file]
-                }
-                
-                if (cfdiXMLsSlot?.file) {
-                  nominaFiles.cfdi_xmls = Array.isArray(cfdiXMLsSlot.file) 
-                    ? cfdiXMLsSlot.file 
-                    : [cfdiXMLsSlot.file]
-                }
-                
-                if (comprobantesSlot?.file) {
-                  nominaFiles.comprobantes = Array.isArray(comprobantesSlot.file) 
-                    ? comprobantesSlot.file 
-                    : [comprobantesSlot.file]
-                }
-                
-                results.modulo6 = await api.uploadNomina(nominaFiles)
-                console.log('✅ Respuesta Módulo 6:', results.modulo6)
+                  excel,
+                  incidencias,
+                  cfdi_pdfs,
+                  cfdi_xmls,
+                  comprobantes
+                })
+                results.modulo6 = modulo6Data
+                console.log('✅ Módulo 6 completado:', modulo6Data)
               } else {
-                console.warn('⚠️ Módulo 6: Falta archivo principal de nómina (excel)')
+                console.warn('⚠️ Módulo 6: Falta el archivo Excel de nómina')
               }
               break
 
@@ -480,6 +467,24 @@ export default function NuevoReportePage() {
                 console.log('✅ Respuesta Módulo 7:', results.modulo7)
               } else {
                 console.warn('⚠️ Módulo 7: Faltan archivos obligatorios (cédula o ficha)')
+              }
+              break
+
+              case 8:
+              // Módulo 08: Control Fiscal
+              const excelFiscalSlot = module.fileSlots.find(s => s.id === 'excel')
+              const pdfsFiscalSlot = module.fileSlots.find(s => s.id === 'pdfs')
+              
+              if (excelFiscalSlot && excelFiscalSlot.file) {
+                const excel = excelFiscalSlot.file as File
+                const pdfs = pdfsFiscalSlot && Array.isArray(pdfsFiscalSlot.file) ? pdfsFiscalSlot.file as File[] : undefined
+                
+                console.log('📊 Procesando Módulo 08: Control Fiscal')
+                const modulo8Data = await api.uploadFiscal(excel, pdfs)
+                results.modulo8 = modulo8Data
+                console.log('✅ Módulo 8 completado:', modulo8Data)
+              } else {
+                console.warn('⚠️ Módulo 8: Falta el archivo Excel')
               }
               break
 
@@ -549,6 +554,7 @@ export default function NuevoReportePage() {
                   {key === 'modulo5' && '💰 ISN - Impuesto Sobre Nómina'}
                   {key === 'modulo6' && '👥 Nómina'}
                   {key === 'modulo7' && '💳 FONACOT - Créditos'}
+                  {key === 'modulo8' && '📊 Control Fiscal'}
                 </h3>
                 
                 {value.success ? (
@@ -647,6 +653,29 @@ export default function NuevoReportePage() {
                         </div>
                       </div>
                     )}
+
+                    {key === 'modulo8' && (
+                      <div>
+                        <div className="flex items-center gap-2 text-green-600 mb-2">
+                          <CheckCircle2 className="w-5 h-5" />
+                          <span className="font-medium">Procesado correctamente</span>
+                        </div>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <p>• Empresa: {value.excel?.razon_social || 'N/A'}</p>
+                          <p>• RFC: {value.excel?.rfc || 'N/A'}</p>
+                          <p>• Ejercicio: {value.ejercicio || 'N/A'}</p>
+                          <p>• Total ISR: ${value.kpis?.total_isr_pagado?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'}</p>
+                          <p>• Total IVA: ${value.kpis?.total_iva_pagado?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'}</p>
+                          <p>• Total Impuestos: ${value.kpis?.total_impuestos?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'}</p>
+                          <p>• Cumplimiento: {value.kpis?.porcentaje_cumplimiento?.toFixed(1) || '0'}%</p>
+                          {value.declaraciones && value.declaraciones.total > 0 && (
+                            <p className="text-blue-600">• Declaraciones: {value.declaraciones.total} PDFs</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    //*--------------------------------------------*//
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-red-600">

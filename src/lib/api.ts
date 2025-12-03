@@ -121,6 +121,52 @@ export const api = {
     return await response.json()
   },
 
+  // Módulo 08: Control Fiscal
+  uploadFiscal: async (excel: File, pdfs?: File[]) => {
+    // 1. Subir Excel
+    const formDataExcel = new FormData()
+    formDataExcel.append('file', excel)
+    
+    const excelResponse = await fetch(`${API_BASE_URL}/api/fiscal/upload-excel`, {
+      method: 'POST',
+      body: formDataExcel
+    })
+    
+    if (!excelResponse.ok) throw new Error('Error al procesar Excel fiscal')
+    const excelData = await excelResponse.json()
+    
+    // 2. Subir PDFs si existen
+    if (pdfs && pdfs.length > 0) {
+      for (const pdf of pdfs) {
+        const formDataPDF = new FormData()
+        formDataPDF.append('file', pdf)
+        
+        await fetch(`${API_BASE_URL}/api/fiscal/upload-declaracion`, {
+          method: 'POST',
+          body: formDataPDF
+        })
+      }
+    }
+    
+    // 3. Obtener datos completos
+    const ejercicio = excelData.data?.ejercicio || new Date().getFullYear()
+    
+    const [resumenResp, kpisResp, declaracionesResp] = await Promise.all([
+      fetch(`${API_BASE_URL}/api/fiscal/resumen/${ejercicio}`).then(r => r.json()),
+      fetch(`${API_BASE_URL}/api/fiscal/kpis/${ejercicio}`).then(r => r.json()),
+      fetch(`${API_BASE_URL}/api/fiscal/declaraciones`).then(r => r.json())
+    ])
+    
+    return {
+      success: true,
+      excel: excelData.data,
+      resumen: resumenResp.data,
+      kpis: kpisResp.data,
+      declaraciones: declaracionesResp.data,
+      ejercicio
+    }
+  },
+
   // Generar PDF completo con todos los módulos
   generarPDFCompleto: async (datos: any): Promise<Blob> => {
     const response = await fetch(`${API_BASE_URL}/generar-reporte-completo`, {

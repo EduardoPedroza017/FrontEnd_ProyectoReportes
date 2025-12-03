@@ -3,7 +3,8 @@
 export interface ReporteData {
   modulo1?: Modulo1Data
   modulo3?: Modulo3Data
-  modulo4?: Modulo04Data 
+  modulo4?: Modulo04Data
+  modulo5?: Modulo05Data
 }
 
 export interface Modulo1Data {
@@ -149,49 +150,198 @@ export interface Modulo3Data {
 
 export interface Modulo04Data {
   success: boolean
-  empresa: {
-    nombre: string
-    rfc: string
-    registro_patronal: string
+  empresa?: {
+    registro_patronal?: string
+    nombre?: string
+    periodo?: string
+    delegacion?: string
+    prima_rt?: number
+    rfc?: string
   }
-  resumen: {
-    num_cotizantes: number
-    total_pagar: number
-    periodo: string
-    fecha_pago: string
+  resumen?: {
+    cuota_fija?: number
+    excedente?: number
+    prestaciones_dinero?: number
+    gastos_medicos?: number
+    riesgos_trabajo?: number
+    invalidez_vida?: number
+    guarderias?: number
+    cesantia?: number
+    infonavit?: number
+    total_pagar?: number
+    num_cotizantes?: number
+    fecha_pago?: string
+    cuotas_patronales?: number
+    cuotas_obreras?: number
   }
-  trabajadores: Array<{
-    nombre: string
-    nss: string
-    rfc: string
-    salario_base: number
-    salario_diario_integrado: number
-    dias_cotizados: number
-    cuota_obrera: number
-    cuota_patronal: number
-    total_cuotas: number
+  trabajadores?: Array<{
+    nombre?: string
+    nss?: string
+    rfc?: string
+    sdi?: number
+    dias?: number
+    cuota_fija?: number
+    subtotal_patronal?: number
+    subtotal_obrera?: number
   }>
-  analisis: {
-    promedio_salario_base: number
-    promedio_sdi: number
-    total_cuota_obrera: number
-    total_cuota_patronal: number
-    distribucion_salarial: {
+  analisis?: {
+    totales?: {
+      obrera?: number
+      patronal?: number
+      cuota_fija?: number
+    }
+    sdi?: {
+      promedio?: number
+      minimo?: number
+      maximo?: number
+      mediana?: number
+    }
+    distribucion_salarial?: {
       [key: string]: number
     }
-    costo_promedio_trabajador: number
+    costo_promedio_trabajador?: number
   }
   comprobante?: {
-    folio: string
-    fecha_pago: string
-    monto: number
-    referencia: string
+    registro_patronal?: string
+    rfc?: string
+    linea_captura?: string
+    folio_sua?: string
+    numero_operacion?: string
+    fecha_hora?: string
+    importe_imss?: number
+    importe_total?: number
   }
-  alertas: Array<{
+  alertas?: Array<{
     tipo: string
     mensaje: string
     trabajador?: string
   }>
+}
+
+
+
+export interface Modulo05Data {
+  success: boolean
+  procesamiento?: {
+    excel: boolean
+    linea_captura: boolean
+    comprobante: boolean
+  }
+  dashboard: {
+    kpis: {
+      isn_mes: number
+      periodo: string
+      base_gravable: number
+      num_empleados: number
+    }
+    desglose: {
+      isn_3: number
+      educacion_15: number
+      redondeo: number
+      total: number
+      porcentaje_isn?: number
+      porcentaje_educacion?: number
+    }
+    cumplimiento: {
+      estado_pago: string
+      fecha_pago: string
+      fecha_vencimiento: string
+      dias_anticipacion?: number
+      conciliacion: string
+      cfdis_emitidos: number
+      cfdis_vigentes: number
+    }
+    tendencia?: number[]
+  }
+  calculo: {
+    percepciones: Array<{ codigo: number; concepto: string; monto: number }>
+    total_percepciones: number
+    deducciones: Array<{ codigo: number; concepto: string; monto: number }>
+    total_deducciones: number
+    otras_erogaciones?: Array<{ codigo: number; concepto: string; monto: number }>
+    total_otras?: number
+    calculo_final?: {
+      base_gravable: number
+      isn_3: number
+      educacion_15: number
+      redondeo: number
+      total: number
+    }
+    validaciones?: Array<{ tipo: string; mensaje: string }>
+  }
+  nomina: {
+    empleados: Array<{
+      codigo: string
+      rfc: string
+      puesto: string
+      sueldo: number
+      integrado: number
+      neto: number
+      isn_individual: number
+    }>
+    total_empleados: number
+    distribucion_puestos?: { [key: string]: number }
+    top_10_isn?: Array<{
+      codigo: string
+      puesto: string
+      isn_individual: number
+    }>
+    totales?: {
+      sueldo: number
+      integrado: number
+      neto: number
+      isn_total: number
+    }
+  }
+  historico: {
+    meses: Array<{
+      mes: string
+      base_gravable: number
+      isn_3: number
+      educacion_15: number
+      total: number
+      num_empleados: number
+      promedio_empleado: number
+    }>
+    acumulado?: {
+      isn: number
+      educacion: number
+      total: number
+      num_meses: number
+    }
+    promedios?: {
+      mensual: number
+      empleados: number
+    }
+    proyeccion?: {
+      anual: number
+    }
+  }
+  conciliacion: {
+    cuadro_conciliacion?: {
+      base_gravable?: { excel: number; linea: number; diferencia: number; ok: boolean }
+      isn_3?: { excel: number; linea: number; diferencia: number; ok: boolean }
+      total?: { linea: number; pago: number; diferencia: number; ok: boolean }
+    }
+    estado_conciliacion?: string[]
+    comprobante_pago?: {
+      numero_operacion?: string
+      fecha_aplicacion?: string
+      estado?: string
+      importe?: number
+    }
+    cfdis_validacion?: { total: number; vigentes: number; cancelados: number }
+  }
+  predicciones: {
+    prediccion_siguiente_mes?: {
+      estimado: number
+      rango_min: number
+      rango_max: number
+    }
+    tendencia_plantilla?: string
+    recomendaciones?: string[]
+  }
+  alertas?: Array<{ tipo: string; mensaje: string }>
 }
 
 

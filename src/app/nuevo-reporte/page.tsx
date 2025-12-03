@@ -349,6 +349,28 @@ export default function NuevoReportePage() {
                 console.warn('⚠️ Módulo 4: Falta la cédula de determinación')
               }
               break
+
+            case 5: // ISN
+            const excelIsnSlot = module.fileSlots.find(s => s.id === 'excel')
+            const lineaSlot = module.fileSlots.find(s => s.id === 'linea')
+            const comprobanteIsnSlot = module.fileSlots.find(s => s.id === 'comprobante')
+            
+            console.log('🔍 Módulo 5 - excelIsnSlot:', excelIsnSlot)
+            console.log('🔍 Módulo 5 - lineaSlot:', lineaSlot)
+            console.log('🔍 Módulo 5 - comprobanteIsnSlot:', comprobanteIsnSlot)
+            
+            if (excelIsnSlot?.file && lineaSlot?.file) {
+              console.log('✅ Procesando Módulo 5 (ISN)...')
+              results.modulo5 = await api.uploadISN(
+                excelIsnSlot.file as File,
+                lineaSlot.file as File,
+                comprobanteIsnSlot?.file as File | undefined
+              )
+              console.log('✅ Respuesta Módulo 5:', results.modulo5)
+            } else {
+              console.warn('⚠️ Módulo 5: Faltan archivos (excel o línea de captura)')
+            }
+            break
           }
         } catch (error: any) {
           console.error(`Error procesando módulo ${module.id}:`, error)
@@ -410,6 +432,7 @@ export default function NuevoReportePage() {
                   {key === 'modulo1' && '📄 Estados de Cuenta'}
                   {key === 'modulo3' && '📋 XML - Facturas'}
                   {key === 'modulo4' && '👥 SUA - Seguro Social'}
+                  {key === 'modulo5' && '💰 ISN - Impuesto Sobre Nómina'}
                 </h3>
                 
                 {value.success ? (
@@ -451,6 +474,20 @@ export default function NuevoReportePage() {
                           <p>• Empresa: {value.empresa?.nombre}</p>
                           <p>• Trabajadores: {value.resumen?.num_cotizantes}</p>
                           <p>• Total a pagar: ${value.resumen?.total_pagar?.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {key === 'modulo5' && (
+                      <div>
+                        <div className="flex items-center gap-2 text-green-600 mb-2">
+                          <CheckCircle2 className="w-5 h-5" />
+                          <span className="font-medium">Procesado correctamente</span>
+                        </div>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <p>• Periodo: {value.dashboard?.kpis?.periodo}</p>
+                          <p>• Empleados: {value.dashboard?.kpis?.num_empleados}</p>
+                          <p>• ISN del mes: ${value.dashboard?.kpis?.isn_mes?.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
                         </div>
                       </div>
                     )}

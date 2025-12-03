@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { ArrowLeft, Download, FileText, Building2 } from 'lucide-react'
+import { DollarSign } from 'lucide-react'
 import Link from 'next/link'
 import Modulo01 from './components/Modulo01'
 import Modulo03 from './components/Modulo03'
 import Modulo04 from './components/Modulo04'
+import Modulo05 from './components/Modulo05'
 import { ReporteData } from './components/types'
 
 
@@ -174,6 +176,7 @@ export default function VerReportePage() {
   const tieneModulo01 = reporteData?.modulo1?.success
   const tieneModulo03 = reporteData?.modulo3?.success
   const tieneModulo04 = reporteData?.modulo4?.success
+  const tieneModulo05 = reporteData?.modulo5?.success
 
   return (
     <div className="min-h-screen bg-bechapra-light-3">
@@ -270,6 +273,25 @@ export default function VerReportePage() {
             </div>
             </div>
             <Modulo04 data={reporteData.modulo4} />
+        </div>
+        )}
+
+        {tieneModulo05 && (
+        <div className="bg-white rounded-lg border border-bechapra-border p-6">
+            <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-white" />
+            </div>
+            <div>
+                <h2 className="text-xl font-bold text-bechapra-text-primary">
+                Módulo 05: ISN
+                </h2>
+                <p className="text-sm text-bechapra-text-secondary">
+                Impuesto Sobre Nómina - Veracruz
+                </p>
+            </div>
+            </div>
+            <Modulo05 data={reporteData.modulo5} />
         </div>
         )}
 

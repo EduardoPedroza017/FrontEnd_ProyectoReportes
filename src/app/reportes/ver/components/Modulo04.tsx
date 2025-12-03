@@ -13,6 +13,7 @@ import {
   FileText,
   CheckCircle2,
 } from 'lucide-react'
+import { PieChart, Pie, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 interface SUAData {
   success: boolean
@@ -44,19 +45,17 @@ interface SUAData {
     nombre?: string
     nss?: string
     rfc?: string
-    sdi?: number  // NO salario_base, es SDI
-    dias?: number  // NO dias_cotizados, es dias
+    sdi?: number
+    dias?: number
     cuota_fija?: number
-    subtotal_patronal?: number  // NO cuota_patronal
-    subtotal_obrera?: number  // NO cuota_obrera
-    // total_cuotas NO existe como campo directo
+    subtotal_patronal?: number
+    subtotal_obrera?: number
   }>
   analisis?: {
     totales?: {
-      obrera?: number  // ⚠️ NO cuota_obrera, es obrera
-      patronal?: number  // ⚠️ NO cuota_patronal, es patronal
+      obrera?: number
+      patronal?: number
       cuota_fija?: number
-      // total NO existe
     }
     sdi?: {
       promedio?: number
@@ -90,6 +89,30 @@ interface Modulo04Props {
   data: SUAData
 }
 
+const COLORS = {
+  primary: '#667EEA',
+  secondary: '#764BA2',
+  success: '#28A745',
+  warning: '#FFA500',
+  danger: '#DC3545',
+  info: '#17A2B8',
+  purple: '#9B59B6',
+  pink: '#E91E63',
+  indigo: '#6610F2',
+}
+
+const CHART_COLORS = [
+  COLORS.primary,
+  COLORS.success,
+  COLORS.warning,
+  COLORS.danger,
+  COLORS.info,
+  COLORS.purple,
+  COLORS.pink,
+  COLORS.indigo,
+  '#3498DB',
+]
+
 export default function Modulo04({ data }: Modulo04Props) {
   const [activeTab, setActiveTab] = useState<'resumen' | 'trabajadores' | 'analisis' | 'comprobante'>('resumen')
   const [expandedWorker, setExpandedWorker] = useState<number | null>(null)
@@ -112,7 +135,7 @@ export default function Modulo04({ data }: Modulo04Props) {
   const comprobante = data.comprobante
   const alertas = data.alertas || []
 
-  // MAPEO CORRECTO según el backend real
+  // Mapeo de valores del backend a la UI
   const nombreEmpresa = empresa.nombre || 'Sin nombre'
   const rfcEmpresa = empresa.rfc || 'Sin RFC'
   const registroPatronal = empresa.registro_patronal || 'Sin registro'
@@ -122,11 +145,8 @@ export default function Modulo04({ data }: Modulo04Props) {
   const numTrabajadores = resumen.num_cotizantes || trabajadores.length || 0
   const fechaPago = resumen.fecha_pago || 'Sin fecha'
   
-  // ⚠️ CORRECCIÓN CRÍTICA: Los nombres correctos son "obrera" y "patronal", NO "cuota_obrera" y "cuota_patronal"
   const totalCuotaObrera = analisis.totales?.obrera || resumen.cuotas_obreras || 0
   const totalCuotaPatronal = analisis.totales?.patronal || resumen.cuotas_patronales || 0
-  
-  // ⚠️ CORRECCIÓN: total_pagar está en resumen, NO en analisis.totales.total
   const totalPagar = resumen.total_pagar || 0
   
   const promedioSDI = analisis.sdi?.promedio || 0
@@ -136,10 +156,36 @@ export default function Modulo04({ data }: Modulo04Props) {
   const costoPromedioTrabajador = analisis.costo_promedio_trabajador || 0
   const distribSalarial = analisis.distribucion_salarial || {}
 
-  // Calcular promedio SDI (que el backend llama "sdi", NO "salario_base")
-  const promedioSalarioBase = trabajadores.length > 0 
+  // Calcular promedio SDI verificado
+  const promedioSDICalculado = trabajadores.length > 0 
     ? trabajadores.reduce((sum, t) => sum + (t.sdi || 0), 0) / trabajadores.length 
-    : 0
+    : promedioSDI
+
+  // Preparar datos para gráfica de distribución de conceptos
+  const conceptosData = [
+    { name: 'Cuota Fija', value: resumen.cuota_fija || 0 },
+    { name: 'Excedente', value: resumen.excedente || 0 },
+    { name: 'Prest. Dinero', value: resumen.prestaciones_dinero || 0 },
+    { name: 'Gastos Médicos', value: resumen.gastos_medicos || 0 },
+    { name: 'Riesgos Trabajo', value: resumen.riesgos_trabajo || 0 },
+    { name: 'Invalidez y Vida', value: resumen.invalidez_vida || 0 },
+    { name: 'Guarderías', value: resumen.guarderias || 0 },
+  ].filter(item => item.value > 0)
+
+  // Datos para gráfica Patronal vs Obrera
+  const cuotasComparativaData = [
+    {
+      name: 'Cuotas',
+      Patronal: totalCuotaPatronal,
+      Obrera: totalCuotaObrera,
+    }
+  ]
+
+  // Datos para gráfica de distribución salarial
+  const distribucionSalarialData = Object.entries(distribSalarial).map(([rango, cantidad]) => ({
+    rango,
+    cantidad,
+  }))
 
   return (
     <div className="space-y-6">
@@ -180,8 +226,9 @@ export default function Modulo04({ data }: Modulo04Props) {
         </div>
       </div>
 
-      {/* KPIs */}
+      {/* KPIs - ACTUALIZADOS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* KPI 1: Trabajadores */}
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-6 text-white">
           <div className="flex items-center justify-between mb-2">
             <Users className="w-8 h-8 opacity-80" />
@@ -191,35 +238,40 @@ export default function Modulo04({ data }: Modulo04Props) {
           <div className="text-xs opacity-75 mt-1">Cotizantes activos</div>
         </div>
 
-        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-6 text-white">
-          <div className="flex items-center justify-between mb-2">
-            <DollarSign className="w-8 h-8 opacity-80" />
-            <div className="text-3xl font-bold">
-              ${promedioSalarioBase.toLocaleString('es-MX', { maximumFractionDigits: 0 })}
-            </div>
-          </div>
-          <div className="text-sm opacity-90">Promedio Salario Base</div>
-          <div className="text-xs opacity-75 mt-1">Por trabajador</div>
-        </div>
-
+        {/* KPI 2: Promedio SDI */}
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-6 text-white">
           <div className="flex items-center justify-between mb-2">
             <TrendingUp className="w-8 h-8 opacity-80" />
             <div className="text-3xl font-bold">
-              ${promedioSDI.toLocaleString('es-MX', { maximumFractionDigits: 0 })}
+              ${promedioSDICalculado.toLocaleString('es-MX', { maximumFractionDigits: 0 })}
             </div>
           </div>
           <div className="text-sm opacity-90">Promedio SDI</div>
           <div className="text-xs opacity-75 mt-1">Salario Diario Integrado</div>
         </div>
 
+        {/* KPI 3: Cuota Patronal */}
+        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-6 text-white">
+          <div className="flex items-center justify-between mb-2">
+            <Building2 className="w-8 h-8 opacity-80" />
+            <div className="text-2xl font-bold">
+              ${totalCuotaPatronal.toLocaleString('es-MX', { maximumFractionDigits: 0 })}
+            </div>
+          </div>
+          <div className="text-sm opacity-90">Cuota Patronal</div>
+          <div className="text-xs opacity-75 mt-1">Aportación empresa</div>
+        </div>
+
+        {/* KPI 4: Cuota Obrera */}
         <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-6 text-white">
           <div className="flex items-center justify-between mb-2">
-            <Calendar className="w-8 h-8 opacity-80" />
-            <div className="text-2xl font-bold">{fechaPago}</div>
+            <DollarSign className="w-8 h-8 opacity-80" />
+            <div className="text-2xl font-bold">
+              ${totalCuotaObrera.toLocaleString('es-MX', { maximumFractionDigits: 0 })}
+            </div>
           </div>
-          <div className="text-sm opacity-90">Fecha Límite</div>
-          <div className="text-xs opacity-75 mt-1">Pago de cuotas</div>
+          <div className="text-sm opacity-90">Cuota Obrera</div>
+          <div className="text-xs opacity-75 mt-1">Descuentos trabajadores</div>
         </div>
       </div>
 
@@ -232,7 +284,7 @@ export default function Modulo04({ data }: Modulo04Props) {
               <h4 className="font-semibold text-yellow-900 mb-2">Alertas detectadas</h4>
               <ul className="space-y-1 text-sm text-yellow-800">
                 {alertas.slice(0, 3).map((alerta, idx) => (
-                  <li key={idx}>• {alerta.mensaje}</li>
+                  <li key={idx}>{alerta.mensaje}</li>
                 ))}
               </ul>
               {alertas.length > 3 && (
@@ -302,6 +354,7 @@ export default function Modulo04({ data }: Modulo04Props) {
         {/* Tab: Resumen */}
         {activeTab === 'resumen' && (
           <div className="p-6 space-y-6">
+            {/* Totales */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-blue-50 rounded-lg p-4">
                 <h4 className="font-semibold text-blue-900 mb-3">Cuotas Obreras</h4>
@@ -317,6 +370,57 @@ export default function Modulo04({ data }: Modulo04Props) {
                   ${totalCuotaPatronal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                 </div>
                 <div className="text-sm text-green-600">Aportación de la empresa</div>
+              </div>
+            </div>
+
+            {/* Gráficas */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Gráfica 1: Distribución por Tipo de Seguro */}
+              {conceptosData.length > 0 && (
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4" />
+                    Distribución por Tipo de Seguro
+                  </h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={conceptosData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {conceptosData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value: number) => `$${value.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              {/* Gráfica 2: Patronal vs Obrera */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Building2 className="w-4 h-4" />
+                  Patronal vs Obrera
+                </h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={cuotasComparativaData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip formatter={(value: number) => `$${value.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`} />
+                    <Legend />
+                    <Bar dataKey="Patronal" fill={COLORS.success} name="Cuota Patronal" />
+                    <Bar dataKey="Obrera" fill={COLORS.warning} name="Cuota Obrera" />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
@@ -380,21 +484,6 @@ export default function Modulo04({ data }: Modulo04Props) {
                 )}
               </div>
             </div>
-
-            {/* Distribución Salarial */}
-            {Object.keys(distribSalarial).length > 0 && (
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-3">Distribución Salarial</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {Object.entries(distribSalarial).map(([rango, cantidad]) => (
-                    <div key={rango} className="bg-gray-50 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-bechapra-primary">{cantidad}</div>
-                      <div className="text-xs text-gray-600 mt-1">${rango}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -406,7 +495,6 @@ export default function Modulo04({ data }: Modulo04Props) {
             ) : (
               <div className="space-y-2">
                 {trabajadores.map((trabajador, idx) => {
-                  // ⚠️ CORRECCIÓN: calcular total_cuotas aquí porque no viene del backend
                   const totalCuotasTrabajador = (trabajador.subtotal_patronal || 0) + (trabajador.subtotal_obrera || 0)
                   
                   return (
@@ -463,7 +551,7 @@ export default function Modulo04({ data }: Modulo04Props) {
                             </div>
                             <div>
                               <div className="text-gray-500">Subtotal Obrera</div>
-                              <div className="font-medium text-blue-600">${(trabajador.subtotal_obrera || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
+                              <div className="font-medium text-orange-600">${(trabajador.subtotal_obrera || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
                             </div>
                             <div>
                               <div className="text-gray-500">Subtotal Patronal</div>
@@ -493,13 +581,14 @@ export default function Modulo04({ data }: Modulo04Props) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Estadísticas */}
               <div className="bg-white border border-gray-200 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-900 mb-4">Estadísticas Salariales</h4>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center pb-2 border-b">
                     <span className="text-gray-600">Promedio SDI</span>
-                    <span className="font-semibold">${promedioSDI.toLocaleString('es-MX', { maximumFractionDigits: 2 })}</span>
+                    <span className="font-semibold">${promedioSDICalculado.toLocaleString('es-MX', { maximumFractionDigits: 2 })}</span>
                   </div>
                   {minimoSDI > 0 && (
                     <div className="flex justify-between items-center pb-2 border-b">
@@ -520,12 +609,13 @@ export default function Modulo04({ data }: Modulo04Props) {
                 </div>
               </div>
 
+              {/* Desglose de Cuotas */}
               <div className="bg-white border border-gray-200 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-900 mb-4">Desglose de Cuotas</h4>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center pb-2 border-b">
                     <span className="text-gray-600">Total Cuota Obrera</span>
-                    <span className="font-semibold text-blue-600">${totalCuotaObrera.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                    <span className="font-semibold text-orange-600">${totalCuotaObrera.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between items-center pb-2 border-b">
                     <span className="text-gray-600">Total Cuota Patronal</span>
@@ -538,6 +628,26 @@ export default function Modulo04({ data }: Modulo04Props) {
                 </div>
               </div>
             </div>
+
+            {/* Gráfica de Distribución Salarial */}
+            {distribucionSalarialData.length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  Distribución Salarial
+                </h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={distribucionSalarialData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="rango" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend formatter={() => 'Trabajadores'} />
+                    <Bar dataKey="cantidad" fill={COLORS.primary} name="Trabajadores" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </div>
         )}
 
@@ -564,7 +674,9 @@ export default function Modulo04({ data }: Modulo04Props) {
                 </div>
                 <div>
                   <div className="text-sm text-green-700 mb-1">Línea de Captura</div>
-                  <div className="font-semibold text-green-900">{comprobante.linea_captura || 'N/A'}</div>
+                  <div className="font-semibold text-green-900 text-xs break-all">
+                    {comprobante.linea_captura || 'N/A'}
+                  </div>
                 </div>
                 <div>
                   <div className="text-sm text-green-700 mb-1">Importe IMSS</div>

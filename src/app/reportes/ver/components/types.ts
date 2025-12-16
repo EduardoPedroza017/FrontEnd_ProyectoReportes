@@ -8,6 +8,7 @@ export interface ReporteData {
   modulo6?: Modulo6Data
   modulo7?: Modulo07Data
   modulo8?: Modulo08Data 
+  modulo11?: Modulo11Data 
 }
 
 export interface Modulo1Data {
@@ -740,4 +741,184 @@ export interface Complemento {
   total: number
   importe_pagado: number
   importe_insoluto: number
+}
+
+
+// Agregar al archivo types.ts existente
+
+// ============================================
+// MÓDULO 11: ESTADOS FINANCIEROS
+// ============================================
+
+export interface Modulo11Data {
+  success: boolean
+  mensaje: string
+  archivo: string
+  metodo: 'Vision' | 'Reglas'
+  datos: DatosEstadosFinancieros
+  ejercicio: number
+  informacion_general: InformacionGeneral
+}
+
+export interface DatosEstadosFinancieros {
+  informacion_general: InformacionGeneral
+  kpis: KPIsFinancieros
+  balance_general: BalanceGeneral
+  estado_resultados: EstadoResultados
+  razones_financieras: RazonesFinancieras
+  proveedores_top_15: ProveedorCliente[]
+  clientes_top_15: ProveedorCliente[]
+  detalle_gastos_top_15: DetalleGasto[]
+  tendencia_mensual?: TendenciaMensual
+}
+
+export interface InformacionGeneral {
+  archivo: string
+  ejercicio: number
+  nombre_empresa: string
+  periodo: string
+  rfc: string | null
+}
+
+export interface KPIsFinancieros {
+  activo_total: number
+  pasivo_total: number
+  capital_total: number
+  ingresos_totales: number
+  gastos_totales: number
+  utilidad_neta: number
+  margen_neto: number
+  razon_circulante: number
+  roe: number
+  roa: number
+}
+
+export interface BalanceGeneral {
+  // Activo Circulante
+  activo_circulante: number
+  caja_bancos: number
+  clientes: number
+  inventarios: number
+  otros_activos_circulantes: number
+
+  // Activo Fijo
+  activo_fijo: number
+  terrenos_edificios: number
+  maquinaria_equipo: number
+  depreciacion_acumulada: number
+
+  // Activo Diferido
+  activo_diferido: number
+
+  // Total Activo
+  activo_total: number
+
+  // Pasivo Circulante
+  pasivo_circulante: number
+  proveedores: number
+  acreedores: number
+  impuestos_por_pagar: number
+  otros_pasivos_circulantes: number
+
+  // Pasivo Largo Plazo
+  pasivo_largo_plazo: number
+  prestamos_bancarios_lp: number
+  documentos_por_pagar_lp: number
+
+  // Total Pasivo
+  pasivo_total: number
+
+  // Capital
+  capital_social: number
+  aportaciones_capital: number
+  reservas_capital: number
+  resultados_acumulados: number
+  utilidades_acumuladas: number
+  resultado_ejercicio: number
+  capital_total: number
+
+  // Validación
+  cuadra: boolean
+  diferencia: number
+  suma_pasivo_capital: number
+}
+
+export interface EstadoResultados {
+  // Ingresos
+  ingresos_totales: number
+  mantenimiento_mensual?: number
+  ventas_netas?: number
+  otros_ingresos_operativos?: number
+  ingresos_no_operativos?: number
+  productos_financieros?: number
+
+  // Gastos
+  costo_ventas?: number
+  gastos_operativos_totales: number
+  gastos_administracion?: number
+  gastos_venta?: number
+  gastos_financieros: number
+  comisiones_bancarias?: number
+  depreciacion_amortizacion?: number
+  otros_gastos?: number
+
+  // Utilidades
+  utilidad_bruta: number
+  utilidad_operativa: number
+  utilidad_antes_impuestos: number
+  isr?: number
+  utilidad_neta: number
+
+  // Márgenes (en decimal, ej: 0.15 = 15%)
+  margen_bruto: number
+  margen_operativo: number
+  margen_neto: number
+}
+
+export interface RazonesFinancieras {
+  // Liquidez
+  razon_circulante: number
+  prueba_acida: number
+  capital_trabajo: number
+
+  // Endeudamiento
+  deuda_capital: number
+  deuda_activo: number
+  apalancamiento: number
+
+  // Rentabilidad
+  roe: number
+  roa: number
+  margen_utilidad_neta: number
+
+  // Eficiencia
+  rotacion_activos: number
+  rotacion_inventarios: number
+  dias_cobro: number
+  dias_pago: number
+}
+
+export interface ProveedorCliente {
+  cuenta: string
+  nombre: string
+  codigo?: string
+  saldo: number
+  porcentaje?: number
+}
+
+export interface DetalleGasto {
+  cuenta: string
+  nombre: string
+  monto: number
+  porcentaje_total: number
+}
+
+export interface TendenciaMensual {
+  [mes: string]: {
+    activo_total: number
+    pasivo_total: number
+    capital_total: number
+    ingresos: number
+    utilidad: number
+  }
 }

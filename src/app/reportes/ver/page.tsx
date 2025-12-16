@@ -12,6 +12,7 @@ import Modulo05 from './components/Modulo05'
 import Modulo06 from './components/Modulo06'
 import Modulo07 from './components/Modulo07'
 import Modulo08 from './components/Modulo08'
+import Modulo11 from './components/Modulo11'
 import { ReporteData } from './components/types'
 
 
@@ -183,6 +184,7 @@ export default function VerReportePage() {
   const tieneModulo06 = reporteData?.modulo6?.success 
   const tieneModulo07 = reporteData.modulo7?.success === true
   const tieneModulo08 = reporteData && 'modulo8' in reporteData
+  const tieneModulo11 = reporteData?.modulo11?.success === true 
 
   return (
     <div className="min-h-screen bg-bechapra-light-3">
@@ -367,6 +369,26 @@ export default function VerReportePage() {
               <Modulo08 data={reporteData.modulo8} />
             </div>
           )}
+        
+        {/* Módulo 11: Estados Financieros */}
+        {tieneModulo11 && (
+          <div className="bg-white rounded-lg border border-bechapra-border p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <FileText className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-bechapra-text-primary">
+                  Módulo 11: Estados Financieros
+                </h2>
+                <p className="text-sm text-bechapra-text-secondary">
+                  Balance General, Estado de Resultados y Razones Financieras
+                </p>
+              </div>
+            </div>
+            <Modulo11 data={reporteData.modulo11} />
+          </div>
+        )}
 
         {/* Mensaje si no hay módulos */}
         {!tieneModulo01 && !tieneModulo03 && !tieneModulo04 && !tieneModulo05 && !tieneModulo06 && !tieneModulo07 && (

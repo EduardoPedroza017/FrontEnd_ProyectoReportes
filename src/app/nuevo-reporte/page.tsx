@@ -221,6 +221,24 @@ const initialModules: ModuleData[] = [
     fileSlots: [],
     files: []
   },
+
+  {
+  id: 11,
+  name: 'Módulo 11: Estados Financieros',
+  subtitle: 'Balance General y Estado de Resultados',
+  icon: FileText,
+  status: 'ready',
+  acceptedTypes: ['.xlsx', '.xls'],
+  fileSlots: [
+    { 
+      id: 'excel', 
+      label: 'Excel con Estados Financieros (CONTPAQi)', 
+      accept: ['.xlsx', '.xls'], 
+      required: true 
+    }
+  ],
+  files: []
+},
 ]
 
 export default function NuevoReportePage() {
@@ -485,6 +503,21 @@ export default function NuevoReportePage() {
                 console.log('✅ Módulo 8 completado:', modulo8Data)
               } else {
                 console.warn('⚠️ Módulo 8: Falta el archivo Excel')
+              }
+              break
+
+              case 11: // Estados Financieros
+              const excelEstadosSlot = module.fileSlots.find(s => s.id === 'excel')
+              
+              if (excelEstadosSlot?.file) {
+                const excel = excelEstadosSlot.file as File
+                
+                console.log('📊 Procesando Módulo 11: Estados Financieros')
+                const modulo11Data = await api.uploadEstadosFinancieros(excel)
+                results.modulo11 = modulo11Data
+                console.log('✅ Módulo 11 completado:', modulo11Data)
+              } else {
+                console.warn('⚠️ Módulo 11: Falta el archivo Excel')
               }
               break
 

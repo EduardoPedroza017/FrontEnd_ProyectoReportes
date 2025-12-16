@@ -167,6 +167,20 @@ export const api = {
     }
   },
 
+  // Módulo 11: Estados Financieros
+  uploadEstadosFinancieros: async (excel: File) => {
+    const formData = new FormData()
+    formData.append('file', excel)
+    
+    const response = await fetch(`${API_BASE_URL}/api/estados-financieros/upload-excel`, {
+      method: 'POST',
+      body: formData
+    })
+    
+    if (!response.ok) throw new Error('Error al procesar Estados Financieros')
+    return await response.json()
+  },
+
   // Generar PDF completo con todos los módulos
   generarPDFCompleto: async (datos: any): Promise<Blob> => {
     const response = await fetch(`${API_BASE_URL}/generar-reporte-completo`, {

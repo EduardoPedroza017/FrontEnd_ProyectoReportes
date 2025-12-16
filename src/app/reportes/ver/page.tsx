@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { ArrowLeft, Download, FileText, Building2, Users, CreditCard, } from 'lucide-react'
+import { ArrowLeft, Download, FileText, Building2, Users, CreditCard, ArrowLeftRight } from 'lucide-react'
 import { DollarSign } from 'lucide-react'
 import Link from 'next/link'
+import VistaComparacion from './components/VistaComparacion'
 import Modulo01 from './components/Modulo01'
 import Modulo03 from './components/Modulo03'
 import Modulo04 from './components/Modulo04'
@@ -23,6 +24,7 @@ export default function VerReportePage() {
   const [reporteData, setReporteData] = useState<ReporteData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [vistaActiva, setVistaActiva] = useState<'reporte' | 'comparacion'>('reporte')
 
   useEffect(() => {
     const cargarReporte = async () => {
@@ -221,196 +223,226 @@ export default function VerReportePage() {
         </div>
       </div>
 
-      {/* Contenido */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="space-y-8">
-          {/* Módulo 01: Estados de Cuenta */}
-          {tieneModulo01 && reporteData.modulo1 && (
-            <div className="bg-white rounded-lg border border-bechapra-border p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-bechapra-primary/10 rounded-lg flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-bechapra-primary" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-bechapra-text-primary">
-                    Módulo 01: Estados de Cuenta
-                  </h2>
-                  <p className="text-sm text-bechapra-text-secondary">
-                    Análisis de movimientos bancarios
-                  </p>
-                </div>
-              </div>
-              <Modulo01 data={reporteData.modulo1} />
-            </div>
-          )}
+      {/* PESTAÑAS DE NAVEGACIÓN */}
+      <div className="bg-white border-b border-bechapra-border">
+        <div className="container mx-auto px-4">
+          <div className="flex">
+            {/* Pestaña: Reporte Normal */}
+            <button
+              onClick={() => setVistaActiva('reporte')}
+              className={`flex-1 px-6 py-4 font-semibold text-base transition-all flex items-center justify-center gap-2 border-b-4 ${
+                vistaActiva === 'reporte'
+                  ? 'bg-blue-50 text-blue-700 border-blue-600'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-transparent'
+              }`}
+            >
+              <FileText className="w-5 h-5" />
+              Reporte Normal
+            </button>
 
-          {/* Módulo 03: XML - Facturas */}
-          {tieneModulo03 && reporteData.modulo3 && (
-            <div className="bg-white rounded-lg border border-bechapra-border p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-green-600" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-bechapra-text-primary">
-                    Módulo 03: XML - Facturas
-                  </h2>
-                  <p className="text-sm text-bechapra-text-secondary">
-                    Conciliación de facturas emitidas y recibidas
-                  </p>
-                </div>
-              </div>
-              <Modulo03 data={reporteData.modulo3} />
-            </div>
-          )}
-
-          {/* Módulo 04: SUA */}
-        {tieneModulo04 && (
-        <div className="bg-white rounded-lg border border-bechapra-border p-6">
-            <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
-                <Building2 className="w-6 h-6 text-white" />
-            </div>
-            <div>
-                <h2 className="text-xl font-bold text-bechapra-text-primary">
-                Módulo 04: SUA
-                </h2>
-                <p className="text-sm text-bechapra-text-secondary">
-                Sistema Único de Autodeterminación
-                </p>
-            </div>
-            </div>
-            <Modulo04 data={reporteData.modulo4} />
-        </div>
-        )}
-
-        {tieneModulo05 && (
-        <div className="bg-white rounded-lg border border-bechapra-border p-6">
-            <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-white" />
-            </div>
-            <div>
-                <h2 className="text-xl font-bold text-bechapra-text-primary">
-                Módulo 05: ISN
-                </h2>
-                <p className="text-sm text-bechapra-text-secondary">
-                Impuesto Sobre Nómina - Veracruz
-                </p>
-            </div>
-            </div>
-            <Modulo05 data={reporteData.modulo5} />
-        </div>
-        )}
-
-        {/* Módulo 05: ISN */}
-        {tieneModulo05 && (
-        <div className="bg-white rounded-lg border border-bechapra-border p-6">
-            {/* ... código del módulo 05 ... */}
-        </div>
-        )}
-
-        {/* Módulo 06: Nómina */}
-        {tieneModulo06 && reporteData.modulo6 && (
-        <div className="bg-white rounded-lg border border-bechapra-border p-6">
-            <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-                <Users className="w-6 h-6 text-white" />
-            </div>
-            <div>
-                <h2 className="text-xl font-bold text-bechapra-text-primary">
-                Módulo 06: Nómina
-                </h2>
-                <p className="text-sm text-bechapra-text-secondary">
-                Gestión y análisis de nómina empresarial
-                </p>
-            </div>
-            </div>
-            <Modulo06 data={reporteData.modulo6} />
-        </div>
-        )}
-        
-        {/* Módulo 07: FONACOT */}
-        {tieneModulo07 && reporteData.modulo7 && (
-          <div className="bg-white rounded-lg border border-bechapra-border p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center">
-                <CreditCard className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-bechapra-text-primary">
-                  Módulo 07: FONACOT
-                </h2>
-                <p className="text-sm text-bechapra-text-secondary">
-                  Análisis de créditos y descuentos FONACOT
-                </p>
-              </div>
-            </div>
-            <Modulo07 data={reporteData.modulo7} />
+            {/* Pestaña: Modo Comparación */}
+            <button
+              onClick={() => setVistaActiva('comparacion')}
+              className={`flex-1 px-6 py-4 font-semibold text-base transition-all flex items-center justify-center gap-2 border-b-4 ${
+                vistaActiva === 'comparacion'
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-purple-700'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-transparent'
+              }`}
+            >
+              <ArrowLeftRight className="w-5 h-5" />
+              Modo Comparación
+            </button>
           </div>
-        )}
-
-        {/* Módulo 08: Control Fiscal */}
-          {tieneModulo08 && reporteData.modulo8 && (
-            <div className="bg-white rounded-lg border border-bechapra-border p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-bechapra-text-primary">
-                    Módulo 08: Control Fiscal
-                  </h2>
-                  <p className="text-sm text-bechapra-text-secondary">
-                    Declaraciones ISR e IVA - Ejercicio {reporteData.modulo8.ejercicio}
-                  </p>
-                </div>
-              </div>
-              <Modulo08 data={reporteData.modulo8} />
-            </div>
-          )}
-        
-        {/* Módulo 11: Estados Financieros */}
-        {tieneModulo11 && (
-          <div className="bg-white rounded-lg border border-bechapra-border p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <FileText className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-bechapra-text-primary">
-                  Módulo 11: Estados Financieros
-                </h2>
-                <p className="text-sm text-bechapra-text-secondary">
-                  Balance General, Estado de Resultados y Razones Financieras
-                </p>
-              </div>
-            </div>
-            <Modulo11 data={reporteData.modulo11} />
-          </div>
-        )}
-
-        {/* Mensaje si no hay módulos */}
-        {!tieneModulo01 && !tieneModulo03 && !tieneModulo04 && !tieneModulo05 && !tieneModulo06 && !tieneModulo07 && (
-        <div className="bg-white rounded-lg border border-bechapra-border p-12 text-center">
-            {/* ... código de mensaje vacío ... */}
-        </div>
-        )}
-
-          {/* Mensaje si no hay módulos */}
-          {!tieneModulo01 && !tieneModulo03 && (
-            <div className="bg-white rounded-lg border border-bechapra-border p-12 text-center">
-              <div className="text-6xl mb-4"></div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                No hay módulos procesados
-              </h3>
-              <p className="text-gray-600">
-                Este reporte no contiene datos de módulos procesados
-              </p>
-            </div>
-          )}
         </div>
       </div>
+
+      {/* Contenido según pestaña activa */}
+      {vistaActiva === 'reporte' ? (
+        // Vista Normal - Con container normal
+        <div className="container mx-auto px-4 py-8">
+          <div className="space-y-8">
+            {/* Módulo 01: Estados de Cuenta */}
+            {tieneModulo01 && reporteData.modulo1 && (
+              <div className="bg-white rounded-lg border border-bechapra-border p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-bechapra-primary/10 rounded-lg flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-bechapra-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-bechapra-text-primary">
+                      Módulo 01: Estados de Cuenta
+                    </h2>
+                    <p className="text-sm text-bechapra-text-secondary">
+                      Análisis de movimientos bancarios
+                    </p>
+                  </div>
+                </div>
+                <Modulo01 data={reporteData.modulo1} />
+              </div>
+            )}
+
+            {/* Módulo 03: XML - Facturas */}
+            {tieneModulo03 && reporteData.modulo3 && (
+              <div className="bg-white rounded-lg border border-bechapra-border p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-bechapra-text-primary">
+                      Módulo 03: XML - Facturas
+                    </h2>
+                    <p className="text-sm text-bechapra-text-secondary">
+                      Conciliación de facturas emitidas y recibidas
+                    </p>
+                  </div>
+                </div>
+                <Modulo03 data={reporteData.modulo3} />
+              </div>
+            )}
+
+            {/* Módulo 04: SUA */}
+            {tieneModulo04 && (
+              <div className="bg-white rounded-lg border border-bechapra-border p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+                    <Building2 className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-bechapra-text-primary">
+                      Módulo 04: SUA
+                    </h2>
+                    <p className="text-sm text-bechapra-text-secondary">
+                      Sistema Único de Autodeterminación
+                    </p>
+                  </div>
+                </div>
+                <Modulo04 data={reporteData.modulo4} />
+              </div>
+            )}
+
+            {/* Módulo 05: ISN */}
+            {tieneModulo05 && (
+              <div className="bg-white rounded-lg border border-bechapra-border p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <DollarSign className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-bechapra-text-primary">
+                      Módulo 05: ISN
+                    </h2>
+                    <p className="text-sm text-bechapra-text-secondary">
+                      Impuesto Sobre Nómina - Veracruz
+                    </p>
+                  </div>
+                </div>
+                <Modulo05 data={reporteData.modulo5} />
+              </div>
+            )}
+
+            {/* Módulo 06: Nómina */}
+            {tieneModulo06 && reporteData.modulo6 && (
+              <div className="bg-white rounded-lg border border-bechapra-border p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-bechapra-text-primary">
+                      Módulo 06: Nómina
+                    </h2>
+                    <p className="text-sm text-bechapra-text-secondary">
+                      Gestión y análisis de nómina empresarial
+                    </p>
+                  </div>
+                </div>
+                <Modulo06 data={reporteData.modulo6} />
+              </div>
+            )}
+            
+            {/* Módulo 07: FONACOT */}
+            {tieneModulo07 && reporteData.modulo7 && (
+              <div className="bg-white rounded-lg border border-bechapra-border p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center">
+                    <CreditCard className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-bechapra-text-primary">
+                      Módulo 07: FONACOT
+                    </h2>
+                    <p className="text-sm text-bechapra-text-secondary">
+                      Análisis de créditos y descuentos FONACOT
+                    </p>
+                  </div>
+                </div>
+                <Modulo07 data={reporteData.modulo7} />
+              </div>
+            )}
+
+            {/* Módulo 08: Control Fiscal */}
+            {tieneModulo08 && reporteData.modulo8 && (
+              <div className="bg-white rounded-lg border border-bechapra-border p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                    <DollarSign className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-bechapra-text-primary">
+                      Módulo 08: Control Fiscal
+                    </h2>
+                    <p className="text-sm text-bechapra-text-secondary">
+                      Declaraciones ISR e IVA - Ejercicio {reporteData.modulo8.ejercicio}
+                    </p>
+                  </div>
+                </div>
+                <Modulo08 data={reporteData.modulo8} />
+              </div>
+            )}
+          
+            {/* Módulo 11: Estados Financieros */}
+            {tieneModulo11 && (
+              <div className="bg-white rounded-lg border border-bechapra-border p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-bechapra-text-primary">
+                      Módulo 11: Estados Financieros
+                    </h2>
+                    <p className="text-sm text-bechapra-text-secondary">
+                      Balance General, Estado de Resultados y Razones Financieras
+                    </p>
+                  </div>
+                </div>
+                <Modulo11 data={reporteData.modulo11} />
+              </div>
+            )}
+
+            {/* Mensaje si no hay módulos */}
+            {!tieneModulo01 && !tieneModulo03 && !tieneModulo04 && !tieneModulo05 && !tieneModulo06 && !tieneModulo07 && !tieneModulo08 && !tieneModulo11 && (
+              <div className="bg-white rounded-lg border border-bechapra-border p-12 text-center">
+                <div className="text-6xl mb-4">📭</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  No hay módulos procesados
+                </h3>
+                <p className="text-gray-600">
+                  Este reporte no contiene datos de módulos procesados
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        // Modo Comparación - Con márgenes mínimos (95% del ancho)
+        <div className="w-full px-2 py-6">
+          <div className="max-w-[98%] mx-auto">
+            <VistaComparacion reporteData={reporteData} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

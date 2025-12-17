@@ -25,7 +25,7 @@ export default function VistaComparacion({ reporteData }: VistaComparacionProps)
     { id: 'modulo03', nombre: 'Facturas XML', icon: Receipt, data: reporteData.modulo3, component: Modulo03, backend: false },
     { id: 'modulo05', nombre: 'ISN', icon: DollarSign, data: reporteData.modulo5, component: Modulo05, backend: false },
     { id: 'modulo06', nombre: 'Nómina', icon: Users, data: reporteData.modulo6, component: Modulo06, backend: false },
-    { id: 'modulo08', nombre: 'Control Fiscal', icon: FileText, data: reporteData.modulo8, component: Modulo08, backend: true },
+    { id: 'modulo08', nombre: 'Control Fiscal', icon: FileText, data: reporteData.modulo8, component: Modulo08, backend: false },
     { id: 'modulo11', nombre: 'Estados Financieros', icon: FileText, data: reporteData.modulo11, component: Modulo11, backend: false },
   ].filter(m => m.data) // Solo módulos con datos
 
@@ -41,34 +41,36 @@ export default function VistaComparacion({ reporteData }: VistaComparacionProps)
   return (
     <div className="space-y-4 w-full">
       {/* Header con Selectores Globales */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-4 shadow-lg sticky top-0 z-10">
-        <div className="flex items-center gap-3 mb-4">
-          <ArrowLeftRight className="w-6 h-6" />
+      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 sticky top-0 z-10">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+            <ArrowLeftRight className="w-6 h-6 text-blue-600" />
+          </div>
           <div>
-            <h2 className="text-xl font-bold">Modo Comparación</h2>
-            <p className="text-blue-100 text-sm">Compara datos de diferentes periodos lado a lado</p>
+            <h2 className="text-xl font-bold text-gray-900">Modo Comparación</h2>
+            <p className="text-gray-600 text-sm">Compara datos de diferentes periodos lado a lado</p>
           </div>
         </div>
 
         {/* Selectores de Periodo Globales */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-6">
           <div>
-            <label className="block mb-2 font-semibold text-sm">Periodo Izquierdo:</label>
+            <label className="block mb-2 font-semibold text-sm text-gray-700">Periodo Izquierdo:</label>
             <select
               value={periodoIzq}
               onChange={(e) => setPeriodoIzq(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg text-gray-900 bg-white border-2 border-white focus:outline-none focus:ring-2 focus:ring-blue-300 text-base"
+              className="w-full px-4 py-3 rounded-lg text-gray-900 bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
             >
               {getMesesOptions()}
             </select>
           </div>
           
           <div>
-            <label className="block mb-2 font-semibold text-sm">Periodo Derecho:</label>
+            <label className="block mb-2 font-semibold text-sm text-gray-700">Periodo Derecho:</label>
             <select
               value={periodoDer}
               onChange={(e) => setPeriodoDer(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg text-gray-900 bg-white border-2 border-white focus:outline-none focus:ring-2 focus:ring-purple-300 text-base"
+              className="w-full px-4 py-3 rounded-lg text-gray-900 bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-base"
             >
               {getMesesOptions()}
             </select>
@@ -211,9 +213,9 @@ function ComparacionModulo({ modulo, periodoIzq, periodoDer }: ComparacionModulo
       {/* Paneles Lado a Lado */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Panel Izquierdo */}
-        <div className="border-4 border-blue-300 rounded-xl bg-white overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 sticky top-0">
-            <h3 className="text-lg font-bold text-center">{getMesNombre(periodoIzq)}</h3>
+        <div className="border-2 border-blue-200 rounded-xl bg-white overflow-hidden shadow-sm">
+          <div className="bg-blue-50 border-b-2 border-blue-200 p-4">
+            <h3 className="text-lg font-bold text-center text-blue-900">{getMesNombre(periodoIzq)}</h3>
           </div>
           <div className="p-4">
             {datosIzq ? (
@@ -225,9 +227,9 @@ function ComparacionModulo({ modulo, periodoIzq, periodoDer }: ComparacionModulo
         </div>
 
         {/* Panel Derecho */}
-        <div className="border-4 border-purple-300 rounded-xl bg-white overflow-hidden">
-          <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-3 sticky top-0">
-            <h3 className="text-lg font-bold text-center">{getMesNombre(periodoDer)}</h3>
+        <div className="border-2 border-purple-200 rounded-xl bg-white overflow-hidden shadow-sm">
+          <div className="bg-purple-50 border-b-2 border-purple-200 p-4">
+            <h3 className="text-lg font-bold text-center text-purple-900">{getMesNombre(periodoDer)}</h3>
           </div>
           <div className="p-4">
             {datosDer ? (
@@ -365,6 +367,8 @@ function filtrarDatosEnFrontend(datos: any, mes1: string, mes2: string, moduloId
       return { izquierda: datos, derecha: datos, comparacion: {} }
     case 'modulo06':
       return filtrarModulo06(datos, mes1, mes2)
+    case 'modulo08':
+      return filtrarModulo08(datos, mes1, mes2)
     case 'modulo11':
       return { izquierda: datos, derecha: datos, comparacion: {} }
     default:
@@ -545,6 +549,55 @@ function filtrarModulo06(datos: any, mes1: string, mes2: string) {
         periodos: periodosDer
       }
     },
+    comparacion: {}
+  }
+}
+
+function filtrarModulo08(data: any, mes1: string, mes2: string) {
+  // Mapeo de número de mes a nombre
+  const mesesMap: { [key: string]: string } = {
+    '01': 'ENERO',
+    '02': 'FEBRERO',
+    '03': 'MARZO',
+    '04': 'ABRIL',
+    '05': 'MAYO',
+    '06': 'JUNIO',
+    '07': 'JULIO',
+    '08': 'AGOSTO',
+    '09': 'SEPTIEMBRE',
+    '10': 'OCTUBRE',
+    '11': 'NOVIEMBRE',
+    '12': 'DICIEMBRE'
+  }
+  
+  const filtrarPorMes = (modulo8Data: any, mes: string) => {
+    if (!modulo8Data?.resumen?.resumen?.meses) return null
+    
+    const nombreMes = mesesMap[mes]
+    const mesFiltrado = modulo8Data.resumen.resumen.meses.find((m: any) => m.mes === nombreMes)
+    
+    if (!mesFiltrado) return null
+    
+    return {
+      ...modulo8Data,
+      resumen: {
+        ...modulo8Data.resumen,
+        resumen: {
+          ...modulo8Data.resumen.resumen,
+          meses: [mesFiltrado]
+        }
+      },
+      kpis: modulo8Data.kpis,
+      ejercicio: modulo8Data.ejercicio || modulo8Data.excel?.ejercicio
+    }
+  }
+  
+  const dataIzq = filtrarPorMes(data, mes1)
+  const dataDer = filtrarPorMes(data, mes2)
+  
+  return {
+    izquierda: dataIzq,
+    derecha: dataDer,
     comparacion: {}
   }
 }

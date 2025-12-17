@@ -72,7 +72,7 @@ export default function Modulo08({ data }: Modulo08Props) {
 
   const resumen = data.resumen?.resumen
   const kpis = data.kpis
-  const meses = resumen.meses || []
+  const meses = resumen?.meses || []
 
   // Preparar datos para gráficas
   const mesesNombres = meses.map((m) => m.mes)
@@ -105,9 +105,9 @@ export default function Modulo08({ data }: Modulo08Props) {
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
           <DollarSign className="w-8 h-8 mb-2 text-purple-600" />
           <p className="text-sm text-purple-700 font-medium mb-1">Total ISR Pagado</p>
-          <p className="text-3xl font-bold text-purple-600">{formatCurrency(kpis.total_isr_pagado || 0)}</p>
+          <p className="text-3xl font-bold text-purple-600">{formatCurrency(kpis?.total_isr_pagado || 0)}</p>
           <p className="text-sm text-purple-600 mt-2">
-            Promedio: {formatCurrency(kpis.promedio_mensual_isr || 0)}/mes
+            Promedio: {formatCurrency(kpis?.promedio_mensual_isr || 0)}/mes
           </p>
         </div>
 
@@ -115,9 +115,9 @@ export default function Modulo08({ data }: Modulo08Props) {
         <div className="bg-green-50 border border-green-200 rounded-lg p-6">
           <TrendingUp className="w-8 h-8 mb-2 text-green-600" />
           <p className="text-sm text-green-700 font-medium mb-1">Total IVA Pagado</p>
-          <p className="text-3xl font-bold text-green-600">{formatCurrency(kpis.total_iva_pagado || 0)}</p>
+          <p className="text-3xl font-bold text-green-600">{formatCurrency(kpis?.total_iva_pagado || 0)}</p>
           <p className="text-sm text-green-600 mt-2">
-            Promedio: {formatCurrency(kpis.promedio_mensual_iva || 0)}/mes
+            Promedio: {formatCurrency(kpis?.promedio_mensual_iva || 0)}/mes
           </p>
         </div>
 
@@ -125,9 +125,9 @@ export default function Modulo08({ data }: Modulo08Props) {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <Calculator className="w-8 h-8 mb-2 text-blue-600" />
           <p className="text-sm text-blue-700 font-medium mb-1">Total Impuestos</p>
-          <p className="text-3xl font-bold text-blue-600">{formatCurrency(kpis.total_impuestos || 0)}</p>
+          <p className="text-3xl font-bold text-blue-600">{formatCurrency(kpis?.total_impuestos || 0)}</p>
           <p className="text-sm text-blue-600 mt-2">
-            Carga fiscal: {(kpis.carga_fiscal || 0).toFixed(2)}%
+            Carga fiscal: {(kpis?.carga_fiscal || 0).toFixed(2)}%
           </p>
         </div>
 
@@ -136,10 +136,10 @@ export default function Modulo08({ data }: Modulo08Props) {
           <CheckCircle2 className="w-8 h-8 mb-2 text-yellow-600" />
           <p className="text-sm text-yellow-700 font-medium mb-1">Cumplimiento</p>
           <p className="text-3xl font-bold text-yellow-600">
-            {(kpis.porcentaje_cumplimiento || 0).toFixed(1)}%
+            {(kpis?.porcentaje_cumplimiento || 0).toFixed(1)}%
           </p>
           <p className="text-sm text-yellow-600 mt-2">
-            {kpis.declaraciones_presentadas || 0} declaraciones
+            {kpis?.declaraciones_presentadas || 0} declaraciones
           </p>
         </div>
       </div>
@@ -219,16 +219,16 @@ export default function Modulo08({ data }: Modulo08Props) {
                       <td className="px-4 py-3 text-sm text-gray-900">TOTAL ANUAL</td>
                       <td className="px-4 py-3 text-sm text-right text-gray-900">-</td>
                       <td className="px-4 py-3 text-sm text-right text-gray-900">
-                        {formatCurrency(resumen.total_isr || 0)}
+                        {formatCurrency(resumen?.total_isr || 0)}
                       </td>
                       <td className="px-4 py-3 text-sm text-right text-gray-900">
-                        {formatCurrency(resumen.total_iva || 0)}
+                        {formatCurrency(resumen?.total_iva || 0)}
                       </td>
                       <td className="px-4 py-3 text-sm text-right text-gray-900">
-                        {formatCurrency(resumen.total_retenciones || 0)}
+                        {formatCurrency(resumen?.total_retenciones || 0)}
                       </td>
                       <td className="px-4 py-3 text-sm text-right text-bechapra-primary">
-                        {formatCurrency(resumen.total_anual || 0)}
+                        {formatCurrency(resumen?.total_anual || 0)}
                       </td>
                     </tr>
                   </tfoot>

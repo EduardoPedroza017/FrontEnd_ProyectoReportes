@@ -25,6 +25,7 @@ export default function VerReportePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [vistaActiva, setVistaActiva] = useState<'reporte' | 'comparacion'>('reporte')
+  const [moduloActivoReporte, setModuloActivoReporte] = useState<string | null>(null)
 
   useEffect(() => {
     const cargarReporte = async () => {
@@ -260,9 +261,143 @@ export default function VerReportePage() {
       {vistaActiva === 'reporte' ? (
         // Vista Normal - Con container normal
         <div className="container mx-auto px-4 py-8">
-          <div className="space-y-8">
-            {/* Módulo 01: Estados de Cuenta */}
-            {tieneModulo01 && reporteData.modulo1 && (
+          <div className="space-y-6">
+            {/* Selector de Módulos */}
+            <div className="bg-white rounded-lg border border-bechapra-border p-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Selecciona el módulo a visualizar:</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {tieneModulo01 && (
+                  <button
+                    onClick={() => setModuloActivoReporte('modulo01')}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      moduloActivoReporte === 'modulo01'
+                        ? 'border-blue-500 bg-blue-50 shadow-md'
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <FileText className={`w-6 h-6 mx-auto mb-2 ${moduloActivoReporte === 'modulo01' ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <p className={`text-xs font-medium text-center ${moduloActivoReporte === 'modulo01' ? 'text-blue-700' : 'text-gray-600'}`}>
+                      Estados de Cuenta
+                    </p>
+                  </button>
+                )}
+                
+                {tieneModulo03 && (
+                  <button
+                    onClick={() => setModuloActivoReporte('modulo03')}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      moduloActivoReporte === 'modulo03'
+                        ? 'border-blue-500 bg-blue-50 shadow-md'
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <FileText className={`w-6 h-6 mx-auto mb-2 ${moduloActivoReporte === 'modulo03' ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <p className={`text-xs font-medium text-center ${moduloActivoReporte === 'modulo03' ? 'text-blue-700' : 'text-gray-600'}`}>
+                      Facturas XML
+                    </p>
+                  </button>
+                )}
+
+                {tieneModulo04 && (
+                  <button
+                    onClick={() => setModuloActivoReporte('modulo04')}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      moduloActivoReporte === 'modulo04'
+                        ? 'border-blue-500 bg-blue-50 shadow-md'
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Building2 className={`w-6 h-6 mx-auto mb-2 ${moduloActivoReporte === 'modulo04' ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <p className={`text-xs font-medium text-center ${moduloActivoReporte === 'modulo04' ? 'text-blue-700' : 'text-gray-600'}`}>
+                      SUA
+                    </p>
+                  </button>
+                )}
+
+                {tieneModulo05 && (
+                  <button
+                    onClick={() => setModuloActivoReporte('modulo05')}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      moduloActivoReporte === 'modulo05'
+                        ? 'border-blue-500 bg-blue-50 shadow-md'
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <DollarSign className={`w-6 h-6 mx-auto mb-2 ${moduloActivoReporte === 'modulo05' ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <p className={`text-xs font-medium text-center ${moduloActivoReporte === 'modulo05' ? 'text-blue-700' : 'text-gray-600'}`}>
+                      ISN
+                    </p>
+                  </button>
+                )}
+
+                {tieneModulo06 && (
+                  <button
+                    onClick={() => setModuloActivoReporte('modulo06')}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      moduloActivoReporte === 'modulo06'
+                        ? 'border-blue-500 bg-blue-50 shadow-md'
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Users className={`w-6 h-6 mx-auto mb-2 ${moduloActivoReporte === 'modulo06' ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <p className={`text-xs font-medium text-center ${moduloActivoReporte === 'modulo06' ? 'text-blue-700' : 'text-gray-600'}`}>
+                      Nómina
+                    </p>
+                  </button>
+                )}
+
+                {tieneModulo07 && (
+                  <button
+                    onClick={() => setModuloActivoReporte('modulo07')}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      moduloActivoReporte === 'modulo07'
+                        ? 'border-blue-500 bg-blue-50 shadow-md'
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <CreditCard className={`w-6 h-6 mx-auto mb-2 ${moduloActivoReporte === 'modulo07' ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <p className={`text-xs font-medium text-center ${moduloActivoReporte === 'modulo07' ? 'text-blue-700' : 'text-gray-600'}`}>
+                      FONACOT
+                    </p>
+                  </button>
+                )}
+
+                {tieneModulo08 && (
+                  <button
+                    onClick={() => setModuloActivoReporte('modulo08')}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      moduloActivoReporte === 'modulo08'
+                        ? 'border-blue-500 bg-blue-50 shadow-md'
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <DollarSign className={`w-6 h-6 mx-auto mb-2 ${moduloActivoReporte === 'modulo08' ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <p className={`text-xs font-medium text-center ${moduloActivoReporte === 'modulo08' ? 'text-blue-700' : 'text-gray-600'}`}>
+                      Control Fiscal
+                    </p>
+                  </button>
+                )}
+
+                {tieneModulo11 && (
+                  <button
+                    onClick={() => setModuloActivoReporte('modulo11')}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      moduloActivoReporte === 'modulo11'
+                        ? 'border-blue-500 bg-blue-50 shadow-md'
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <FileText className={`w-6 h-6 mx-auto mb-2 ${moduloActivoReporte === 'modulo11' ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <p className={`text-xs font-medium text-center ${moduloActivoReporte === 'modulo11' ? 'text-blue-700' : 'text-gray-600'}`}>
+                      Estados Financieros
+                    </p>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Módulo Seleccionado */}
+            {moduloActivoReporte === 'modulo01' && tieneModulo01 && reporteData.modulo1 && (
               <div className="bg-white rounded-lg border border-bechapra-border p-6">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 bg-bechapra-primary/10 rounded-lg flex items-center justify-center">
@@ -281,8 +416,7 @@ export default function VerReportePage() {
               </div>
             )}
 
-            {/* Módulo 03: XML - Facturas */}
-            {tieneModulo03 && reporteData.modulo3 && (
+            {moduloActivoReporte === 'modulo03' && tieneModulo03 && reporteData.modulo3 && (
               <div className="bg-white rounded-lg border border-bechapra-border p-6">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -301,12 +435,11 @@ export default function VerReportePage() {
               </div>
             )}
 
-            {/* Módulo 04: SUA */}
-            {tieneModulo04 && (
+            {moduloActivoReporte === 'modulo04' && tieneModulo04 && (
               <div className="bg-white rounded-lg border border-bechapra-border p-6">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
-                    <Building2 className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                    <Building2 className="w-6 h-6 text-purple-600" />
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-bechapra-text-primary">
@@ -321,12 +454,11 @@ export default function VerReportePage() {
               </div>
             )}
 
-            {/* Módulo 05: ISN */}
-            {tieneModulo05 && (
+            {moduloActivoReporte === 'modulo05' && tieneModulo05 && (
               <div className="bg-white rounded-lg border border-bechapra-border p-6">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                    <DollarSign className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <DollarSign className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-bechapra-text-primary">
@@ -341,12 +473,11 @@ export default function VerReportePage() {
               </div>
             )}
 
-            {/* Módulo 06: Nómina */}
-            {tieneModulo06 && reporteData.modulo6 && (
+            {moduloActivoReporte === 'modulo06' && tieneModulo06 && reporteData.modulo6 && (
               <div className="bg-white rounded-lg border border-bechapra-border p-6">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-                    <Users className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-green-600" />
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-bechapra-text-primary">
@@ -360,13 +491,12 @@ export default function VerReportePage() {
                 <Modulo06 data={reporteData.modulo6} />
               </div>
             )}
-            
-            {/* Módulo 07: FONACOT */}
-            {tieneModulo07 && reporteData.modulo7 && (
+
+            {moduloActivoReporte === 'modulo07' && tieneModulo07 && reporteData.modulo7 && (
               <div className="bg-white rounded-lg border border-bechapra-border p-6">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center">
-                    <CreditCard className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                    <CreditCard className="w-6 h-6 text-purple-600" />
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-bechapra-text-primary">
@@ -381,12 +511,11 @@ export default function VerReportePage() {
               </div>
             )}
 
-            {/* Módulo 08: Control Fiscal */}
-            {tieneModulo08 && reporteData.modulo8 && (
+            {moduloActivoReporte === 'modulo08' && tieneModulo08 && reporteData.modulo8 && (
               <div className="bg-white rounded-lg border border-bechapra-border p-6">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                    <DollarSign className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <DollarSign className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-bechapra-text-primary">
@@ -400,13 +529,12 @@ export default function VerReportePage() {
                 <Modulo08 data={reporteData.modulo8} />
               </div>
             )}
-          
-            {/* Módulo 11: Estados Financieros */}
-            {tieneModulo11 && (
+
+            {moduloActivoReporte === 'modulo11' && tieneModulo11 && (
               <div className="bg-white rounded-lg border border-bechapra-border p-6">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                    <FileText className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-bechapra-text-primary">
@@ -421,26 +549,26 @@ export default function VerReportePage() {
               </div>
             )}
 
-            {/* Mensaje si no hay módulos */}
-            {!tieneModulo01 && !tieneModulo03 && !tieneModulo04 && !tieneModulo05 && !tieneModulo06 && !tieneModulo07 && !tieneModulo08 && !tieneModulo11 && (
+            {/* Mensaje si no hay módulo seleccionado */}
+            {!moduloActivoReporte && (
               <div className="bg-white rounded-lg border border-bechapra-border p-12 text-center">
-                <div className="text-6xl mb-4">📭</div>
+                <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-blue-50 flex items-center justify-center">
+                  <FileText className="w-10 h-10 text-blue-400" />
+                </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  No hay módulos procesados
+                  Selecciona un módulo
                 </h3>
                 <p className="text-gray-600">
-                  Este reporte no contiene datos de módulos procesados
+                  Elige un módulo del selector de arriba para ver su contenido
                 </p>
               </div>
             )}
           </div>
         </div>
       ) : (
-        // Modo Comparación - Con márgenes mínimos (95% del ancho)
-        <div className="w-full px-2 py-6">
-          <div className="max-w-[98%] mx-auto">
-            <VistaComparacion reporteData={reporteData} />
-          </div>
+        // Modo Comparación - Ancho completo respetando sidebar sin overflow
+        <div className="w-[calc(100vw-16rem)] relative left-[calc(-50vw+50%)] pl-48 pr-6 py-4">
+          <VistaComparacion reporteData={reporteData} />
         </div>
       )}
     </div>

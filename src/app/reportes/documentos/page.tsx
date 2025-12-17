@@ -1,129 +1,150 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
+import { useState, useEffect } from 'react'
 import {
   Search,
   FolderOpen,
   FileText,
   FileSpreadsheet,
-  FileImage,
   Archive,
-  Download,
+  FileImage,
   Eye,
+  Download,
+  MoreVertical,
+  ChevronDown,
   ChevronRight,
-  Filter,
-  Clock,
-  HardDrive,
-  Grid3X3,
-  List,
-  MoreVertical
+  Loader2,
+  AlertCircle
 } from 'lucide-react'
 
-// Mock data
-const reportDocuments = [
-  {
-    id: 'RPT-2024-001',
-    name: 'Análisis Fiscal Q4 2024',
-    date: '26 Nov 2024',
-    folders: [
-      {
-        name: 'Módulo 03 - XML',
-        documents: [
-          { name: 'facturas_emitidas.xlsx', type: 'excel', size: '2.4 MB', date: '26 Nov 2024' },
-          { name: 'xmls_emitidos.zip', type: 'zip', size: '5.1 MB', date: '26 Nov 2024' },
-          { name: 'xmls_recibidos.zip', type: 'zip', size: '4.8 MB', date: '26 Nov 2024' },
-        ]
-      },
-      {
-        name: 'Módulo 04 - SUA',
-        documents: [
-          { name: 'cedula_determinacion.pdf', type: 'pdf', size: '1.2 MB', date: '26 Nov 2024' },
-          { name: 'resumen_liquidacion.pdf', type: 'pdf', size: '890 KB', date: '26 Nov 2024' },
-          { name: 'comprobante_pago.jpg', type: 'image', size: '450 KB', date: '26 Nov 2024' },
-        ]
-      },
-      {
-        name: 'Módulo 08 - Control Fiscal',
-        documents: [
-          { name: 'pagos_provisionales.xlsx', type: 'excel', size: '1.8 MB', date: '26 Nov 2024' },
-          { name: 'declaracion_isr.pdf', type: 'pdf', size: '520 KB', date: '26 Nov 2024' },
-          { name: 'declaracion_iva.pdf', type: 'pdf', size: '480 KB', date: '26 Nov 2024' },
-        ]
-      },
-      {
-        name: 'Resultados',
-        documents: [
-          { name: 'reporte_analisis_q4.pdf', type: 'pdf', size: '3.2 MB', date: '26 Nov 2024' },
-          { name: 'resumen_ejecutivo.pdf', type: 'pdf', size: '1.1 MB', date: '26 Nov 2024' },
-        ]
-      }
-    ]
-  },
-  {
-    id: 'RPT-2024-002',
-    name: 'Conciliación Bancaria Noviembre',
-    date: '25 Nov 2024',
-    folders: [
-      {
-        name: 'Módulo 01 - Estados de Cuenta',
-        documents: [
-          { name: 'estado_cuenta_bbva.pdf', type: 'pdf', size: '1.8 MB', date: '25 Nov 2024' },
-          { name: 'estado_cuenta_santander.pdf', type: 'pdf', size: '2.1 MB', date: '25 Nov 2024' },
-          { name: 'movimientos_consolidados.xlsx', type: 'excel', size: '980 KB', date: '25 Nov 2024' },
-        ]
-      },
-      {
-        name: 'Resultados',
-        documents: [
-          { name: 'conciliacion_bancaria.pdf', type: 'pdf', size: '2.5 MB', date: '25 Nov 2024' },
-          { name: 'reporte_movimientos.xlsx', type: 'excel', size: '1.4 MB', date: '25 Nov 2024' },
-        ]
-      }
-    ]
-  },
-  {
-    id: 'RPT-2024-003',
-    name: 'Nómina Quincenal Nov-2',
-    date: '24 Nov 2024',
-    folders: [
-      {
-        name: 'Módulo 05 - ISN',
-        documents: [
-          { name: 'nomina_quincenal.xlsx', type: 'excel', size: '1.2 MB', date: '24 Nov 2024' },
-          { name: 'linea_captura_isn.pdf', type: 'pdf', size: '380 KB', date: '24 Nov 2024' },
-        ]
-      },
-      {
-        name: 'Módulo 06 - Nómina',
-        documents: [
-          { name: 'dispersion_nomina.xlsx', type: 'excel', size: '890 KB', date: '24 Nov 2024' },
-          { name: 'cfdi_nomina.zip', type: 'zip', size: '2.4 MB', date: '24 Nov 2024' },
-          { name: 'incidencias.xlsx', type: 'excel', size: '340 KB', date: '24 Nov 2024' },
-        ]
-      }
-    ]
-  }
-]
+// Interfaces
+interface Reporte {
+  id: string
+  nombre: string
+  descripcion: string | null
+  num_archivos: number
+  created_at: string
+}
+
+interface Archivo {
+  id: string
+  nombre_original: string
+  tipo_archivo: string | null
+  tamano_legible: string
+  created_at: string
+}
+
+interface ArchivosPorModulo {
+  [modulo: string]: Archivo[]
+}
+
+interface ReporteArchivos {
+  reporte: Reporte
+  archivos_por_modulo: ArchivosPorModulo
+  total_archivos: number
+  tamano_total_legible: string
+}
+
+// Nombres de módulos
+const MODULOS_NOMBRES: Record<string, string> = {
+  modulo1: 'Módulo 01 - Estados de Cuenta',
+  modulo3: 'Módulo 03 - XML Facturas',
+  modulo4: 'Módulo 04 - SUA',
+  modulo5: 'Módulo 05 - ISN',
+  modulo6: 'Módulo 06 - Nómina',
+  modulo7: 'Módulo 07 - FONACOT',
+  modulo8: 'Módulo 08 - Control Fiscal',
+  modulo11: 'Módulo 11 - Estados Financieros',
+  sin_modulo: 'Otros Archivos'
+}
 
 export default function DocumentosReportePage() {
+  // Estados para reportes
+  const [reportes, setReportes] = useState<Reporte[]>([])
+  const [loadingReportes, setLoadingReportes] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedReport, setSelectedReport] = useState<string | null>(null)
+  
+  // Estados para archivos del reporte seleccionado
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
+  const [reporteArchivos, setReporteArchivos] = useState<ReporteArchivos | null>(null)
+  const [loadingArchivos, setLoadingArchivos] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  
+  // Estados para UI
   const [expandedFolders, setExpandedFolders] = useState<string[]>([])
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
 
-  const getFileIcon = (type: string) => {
-    switch (type) {
-      case 'pdf':
-        return <FileText className="text-red-500" size={20} />
-      case 'excel':
-        return <FileSpreadsheet className="text-green-600" size={20} />
-      case 'zip':
-        return <Archive className="text-amber-500" size={20} />
-      case 'image':
-        return <FileImage className="text-blue-500" size={20} />
-      default:
-        return <FileText className="text-bechapra-text-muted" size={20} />
+  // Cargar lista de reportes al montar
+  useEffect(() => {
+    cargarReportes()
+  }, [])
+
+  const cargarReportes = async () => {
+    try {
+      setLoadingReportes(true)
+      setError(null)
+      
+      const response = await fetch('http://localhost:8000/api/reportes/lista?limit=100')
+      
+      if (!response.ok) {
+        throw new Error('Error al cargar reportes')
+      }
+      
+      const data = await response.json()
+      setReportes(data)
+      
+    } catch (err: any) {
+      console.error('Error al cargar reportes:', err)
+      setError(err.message || 'Error desconocido al cargar reportes')
+    } finally {
+      setLoadingReportes(false)
+    }
+  }
+
+  const cargarArchivosReporte = async (reporteId: string) => {
+    try {
+      setLoadingArchivos(true)
+      setError(null)
+      setSelectedReportId(reporteId)
+      
+      console.log('🔍 Cargando archivos del reporte:', reporteId)
+      
+      const response = await fetch(`http://localhost:8000/api/reportes/${reporteId}/archivos`)
+      
+      if (!response.ok) {
+        throw new Error('Error al cargar archivos del reporte')
+      }
+      
+      const data = await response.json()
+      console.log('✅ Archivos cargados:', data)
+      
+      if (data.success) {
+        setReporteArchivos(data)
+        // Auto-expandir todos los módulos al cargar
+        setExpandedFolders(Object.keys(data.archivos_por_modulo))
+      }
+      
+    } catch (err: any) {
+      console.error('Error al cargar archivos:', err)
+      setError(err.message || 'Error al cargar archivos del reporte')
+      setReporteArchivos(null)
+    } finally {
+      setLoadingArchivos(false)
+    }
+  }
+
+  const getFileIcon = (type: string | null) => {
+    const fileType = (type || '').toLowerCase()
+    
+    if (fileType === 'pdf') {
+      return <FileText className="text-red-500" size={20} />
+    } else if (fileType === 'xlsx' || fileType === 'xls' || fileType === 'excel') {
+      return <FileSpreadsheet className="text-green-600" size={20} />
+    } else if (fileType === 'zip') {
+      return <Archive className="text-amber-500" size={20} />
+    } else if (fileType === 'png' || fileType === 'jpg' || fileType === 'jpeg') {
+      return <FileImage className="text-blue-500" size={20} />
+    } else {
+      return <FileText className="text-bechapra-text-muted" size={20} />
     }
   }
 
@@ -135,14 +156,10 @@ export default function DocumentosReportePage() {
     )
   }
 
-  const filteredReports = reportDocuments.filter(report =>
-    report.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredReports = reportes.filter(report =>
+    report.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
     report.id.toLowerCase().includes(searchQuery.toLowerCase())
   )
-
-  const selectedReportData = selectedReport
-    ? reportDocuments.find(r => r.id === selectedReport)
-    : null
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -156,194 +173,182 @@ export default function DocumentosReportePage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Reports sidebar */}
-        <div className="lg:col-span-4">
-          <div className="card-bechapra overflow-hidden">
-            <div className="p-4 border-b border-bechapra-border-light">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-bechapra-text-muted" size={18} />
-                <input
-                  type="text"
-                  placeholder="Buscar reporte..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="input-bechapra pl-10 py-2.5"
-                />
-              </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Sidebar: Lista de reportes */}
+        <div className="lg:col-span-1 space-y-4">
+          <div className="card-bechapra p-4">
+            <h3 className="font-semibold text-bechapra-text-primary mb-4">Reportes</h3>
+            
+            {/* Buscador */}
+            <div className="relative mb-4">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-bechapra-text-muted"
+                size={18}
+              />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar reporte..."
+                className="input-bechapra pl-10"
+              />
             </div>
 
-            <div className="max-h-[600px] overflow-y-auto">
-              {filteredReports.map((report) => {
-                const totalDocs = report.folders.reduce((acc, f) => acc + f.documents.length, 0)
-                const isSelected = selectedReport === report.id
-
-                return (
+            {/* Lista de reportes */}
+            {loadingReportes ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="animate-spin text-bechapra-primary" size={32} />
+              </div>
+            ) : filteredReports.length === 0 ? (
+              <p className="text-center text-bechapra-text-muted py-8">
+                No hay reportes disponibles
+              </p>
+            ) : (
+              <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                {filteredReports.map((report) => (
                   <button
                     key={report.id}
-                    onClick={() => setSelectedReport(report.id)}
-                    className={`
-                      w-full p-4 text-left border-b border-bechapra-border-light
-                      transition-all duration-200
-                      ${isSelected
-                        ? 'bg-bechapra-light border-l-4 border-l-bechapra-primary'
-                        : 'hover:bg-bechapra-light-3'
-                      }
-                    `}
+                    onClick={() => cargarArchivosReporte(report.id)}
+                    className={`w-full text-left p-3 rounded-bechapra border-2 transition-all ${
+                      selectedReportId === report.id
+                        ? 'border-bechapra-primary bg-bechapra-light shadow-md'
+                        : 'border-bechapra-border hover:border-bechapra-primary hover:bg-bechapra-light-2'
+                    }`}
                   >
                     <div className="flex items-start gap-3">
-                      <div className={`
-                        w-10 h-10 rounded-bechapra flex items-center justify-center flex-shrink-0
-                        ${isSelected ? 'bg-bechapra-primary text-white' : 'bg-bechapra-light text-bechapra-primary'}
-                      `}>
-                        <FolderOpen size={18} />
-                      </div>
+                      <FolderOpen
+                        className={selectedReportId === report.id ? 'text-bechapra-primary' : 'text-bechapra-text-muted'}
+                        size={20}
+                      />
                       <div className="flex-1 min-w-0">
-                        <p className={`font-semibold truncate ${isSelected ? 'text-bechapra-primary' : 'text-bechapra-text-primary'}`}>
-                          {report.name}
+                        <p className="font-medium text-bechapra-text-primary truncate">
+                          {report.nombre}
                         </p>
-                        <p className="text-xs text-bechapra-text-muted font-mono">{report.id}</p>
-                        <div className="flex items-center gap-3 mt-2 text-xs text-bechapra-text-secondary">
-                          <span className="flex items-center gap-1">
-                            <FileText size={12} />
-                            {totalDocs} documentos
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock size={12} />
-                            {report.date}
-                          </span>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-bechapra-text-muted">
+                          <span>{report.id.slice(0, 8)}</span>
+                          <span>•</span>
+                          <span>{report.num_archivos} {report.num_archivos === 1 ? 'documento' : 'documentos'}</span>
                         </div>
+                        <p className="text-xs text-bechapra-text-muted mt-1">
+                          {new Date(report.created_at).toLocaleDateString('es-MX', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric'
+                          })}
+                        </p>
                       </div>
-                      <ChevronRight size={16} className={`text-bechapra-text-muted flex-shrink-0 transition-transform ${isSelected ? 'rotate-90' : ''}`} />
                     </div>
                   </button>
-                )
-              })}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Documents viewer */}
-        <div className="lg:col-span-8">
-          {selectedReportData ? (
-            <div className="card-bechapra overflow-hidden">
-              {/* Header */}
-              <div className="p-5 border-b border-bechapra-border-light">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-lg font-semibold text-bechapra-text-primary">
-                      {selectedReportData.name}
-                    </h2>
-                    <p className="text-sm text-bechapra-text-secondary mt-0.5">
-                      {selectedReportData.folders.length} carpetas • {selectedReportData.folders.reduce((acc, f) => acc + f.documents.length, 0)} documentos
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setViewMode('grid')}
-                      className={`p-2 rounded-bechapra transition-colors ${viewMode === 'grid' ? 'bg-bechapra-primary text-white' : 'hover:bg-bechapra-light text-bechapra-text-muted'}`}
-                    >
-                      <Grid3X3 size={18} />
-                    </button>
-                    <button
-                      onClick={() => setViewMode('list')}
-                      className={`p-2 rounded-bechapra transition-colors ${viewMode === 'list' ? 'bg-bechapra-primary text-white' : 'hover:bg-bechapra-light text-bechapra-text-muted'}`}
-                    >
-                      <List size={18} />
-                    </button>
-                    <button className="btn-secondary py-2">
-                      <Download size={16} />
-                      Descargar Todo
-                    </button>
-                  </div>
+        {/* Main: Archivos del reporte seleccionado */}
+        <div className="lg:col-span-2">
+          {loadingArchivos ? (
+            <div className="card-bechapra p-12 text-center">
+              <Loader2 className="animate-spin mx-auto text-bechapra-primary mb-4" size={48} />
+              <p className="text-bechapra-text-secondary">Cargando documentos...</p>
+            </div>
+          ) : error ? (
+            <div className="card-bechapra p-12 text-center">
+              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertCircle className="text-red-600" size={32} />
+              </div>
+              <h3 className="text-lg font-semibold text-bechapra-text-primary mb-2">
+                Error al cargar documentos
+              </h3>
+              <p className="text-bechapra-text-secondary">{error}</p>
+            </div>
+          ) : reporteArchivos ? (
+            <div className="card-bechapra p-6">
+              {/* Header del reporte */}
+              <div className="mb-6 pb-4 border-b border-bechapra-border">
+                <h2 className="text-xl font-bold text-bechapra-text-primary mb-2">
+                  {reporteArchivos.reporte.nombre}
+                </h2>
+                <div className="flex items-center gap-4 text-sm text-bechapra-text-muted">
+                  <span>{reporteArchivos.total_archivos} archivos</span>
+                  <span>•</span>
+                  <span>{reporteArchivos.tamano_total_legible}</span>
+                  <span>•</span>
+                  <span>
+                    {new Date(reporteArchivos.reporte.created_at).toLocaleDateString('es-MX', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    })}
+                  </span>
                 </div>
               </div>
 
-              {/* Folders and files */}
-              <div className="p-5 space-y-4">
-                {selectedReportData.folders.map((folder, folderIndex) => {
-                  const folderId = `${selectedReportData.id}-${folderIndex}`
-                  const isExpanded = expandedFolders.includes(folderId)
-
+              {/* Árbol de carpetas por módulo */}
+              <div className="space-y-3">
+                {Object.entries(reporteArchivos.archivos_por_modulo).map(([modulo, archivos]) => {
+                  const isExpanded = expandedFolders.includes(modulo)
+                  const moduloNombre = MODULOS_NOMBRES[modulo] || modulo
+                  
                   return (
-                    <div key={folderId} className="border border-bechapra-border-light rounded-bechapra-md overflow-hidden">
-                      {/* Folder header */}
+                    <div key={modulo} className="border border-bechapra-border rounded-bechapra overflow-hidden">
+                      {/* Header de la carpeta */}
                       <button
-                        onClick={() => toggleFolder(folderId)}
-                        className="w-full p-4 flex items-center justify-between bg-bechapra-light-3 hover:bg-bechapra-light transition-colors"
+                        onClick={() => toggleFolder(modulo)}
+                        className="w-full flex items-center justify-between p-4 bg-bechapra-light hover:bg-bechapra-light-2 transition-colors"
                       >
                         <div className="flex items-center gap-3">
                           <FolderOpen className="text-bechapra-primary" size={20} />
-                          <span className="font-medium text-bechapra-text-primary">{folder.name}</span>
-                          <span className="text-sm text-bechapra-text-muted">({folder.documents.length} archivos)</span>
+                          <span className="font-medium text-bechapra-text-primary">{moduloNombre}</span>
+                          <span className="px-2 py-0.5 bg-bechapra-primary/10 text-bechapra-primary text-xs rounded-full">
+                            {archivos.length}
+                          </span>
                         </div>
-                        <ChevronRight
-                          size={18}
-                          className={`text-bechapra-text-muted transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                        />
+                        {isExpanded ? (
+                          <ChevronDown className="text-bechapra-text-muted" size={20} />
+                        ) : (
+                          <ChevronRight className="text-bechapra-text-muted" size={20} />
+                        )}
                       </button>
 
-                      {/* Files */}
+                      {/* Lista de archivos (expandible) */}
                       {isExpanded && (
-                        <div className={viewMode === 'grid' ? 'p-4 grid grid-cols-2 md:grid-cols-3 gap-3' : 'divide-y divide-bechapra-border-light'}>
-                          {folder.documents.map((doc, docIndex) => (
-                            viewMode === 'grid' ? (
-                              <div
-                                key={docIndex}
-                                className="group p-4 bg-white border border-bechapra-border-light rounded-bechapra hover:border-bechapra-primary/30 hover:shadow-card transition-all cursor-pointer"
-                              >
-                                <div className="flex flex-col items-center text-center">
-                                  <div className="w-12 h-12 rounded-bechapra bg-bechapra-light flex items-center justify-center mb-3">
-                                    {getFileIcon(doc.type)}
-                                  </div>
-                                  <p className="text-sm font-medium text-bechapra-text-primary truncate w-full">
-                                    {doc.name}
+                        <div className="bg-white">
+                          {archivos.map((archivo, index) => (
+                            <div
+                              key={archivo.id}
+                              className={`flex items-center justify-between p-4 hover:bg-bechapra-light-2 transition-colors ${
+                                index !== archivos.length - 1 ? 'border-b border-bechapra-border-light' : ''
+                              }`}
+                            >
+                              <div className="flex items-center gap-3 flex-1 min-w-0">
+                                {getFileIcon(archivo.tipo_archivo)}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-bechapra-text-primary truncate">
+                                    {archivo.nombre_original}
                                   </p>
-                                  <p className="text-xs text-bechapra-text-muted mt-1">{doc.size}</p>
-                                </div>
-                                <div className="mt-3 flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button className="p-1.5 rounded hover:bg-bechapra-light text-bechapra-text-muted hover:text-bechapra-primary">
-                                    <Eye size={14} />
-                                  </button>
-                                  <button className="p-1.5 rounded hover:bg-bechapra-light text-bechapra-text-muted hover:text-bechapra-primary">
-                                    <Download size={14} />
-                                  </button>
+                                  <p className="text-xs text-bechapra-text-muted mt-0.5">
+                                    {archivo.tamano_legible} • {new Date(archivo.created_at).toLocaleDateString('es-MX', {
+                                      day: 'numeric',
+                                      month: 'short',
+                                      year: 'numeric'
+                                    })}
+                                  </p>
                                 </div>
                               </div>
-                            ) : (
-                              <div
-                                key={docIndex}
-                                className="group flex items-center justify-between p-4 hover:bg-bechapra-light-3 transition-colors"
-                              >
-                                <div className="flex items-center gap-3">
-                                  {getFileIcon(doc.type)}
-                                  <div>
-                                    <p className="text-sm font-medium text-bechapra-text-primary">{doc.name}</p>
-                                    <div className="flex items-center gap-3 text-xs text-bechapra-text-muted mt-0.5">
-                                      <span className="flex items-center gap-1">
-                                        <HardDrive size={10} />
-                                        {doc.size}
-                                      </span>
-                                      <span className="flex items-center gap-1">
-                                        <Clock size={10} />
-                                        {doc.date}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button className="p-2 rounded-bechapra hover:bg-bechapra-light text-bechapra-text-muted hover:text-bechapra-primary transition-colors">
-                                    <Eye size={16} />
-                                  </button>
-                                  <button className="p-2 rounded-bechapra hover:bg-bechapra-light text-bechapra-text-muted hover:text-bechapra-primary transition-colors">
-                                    <Download size={16} />
-                                  </button>
-                                  <button className="p-2 rounded-bechapra hover:bg-bechapra-light text-bechapra-text-muted hover:text-bechapra-primary transition-colors">
-                                    <MoreVertical size={16} />
-                                  </button>
-                                </div>
+
+                              <div className="flex items-center gap-1">
+                                <button className="p-2 rounded-bechapra hover:bg-bechapra-light text-bechapra-text-muted hover:text-bechapra-primary transition-colors">
+                                  <Eye size={16} />
+                                </button>
+                                <button className="p-2 rounded-bechapra hover:bg-bechapra-light text-bechapra-text-muted hover:text-bechapra-primary transition-colors">
+                                  <Download size={16} />
+                                </button>
+                                <button className="p-2 rounded-bechapra hover:bg-bechapra-light text-bechapra-text-muted hover:text-bechapra-primary transition-colors">
+                                  <MoreVertical size={16} />
+                                </button>
                               </div>
-                            )
+                            </div>
                           ))}
                         </div>
                       )}

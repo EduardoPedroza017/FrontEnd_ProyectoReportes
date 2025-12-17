@@ -1,413 +1,412 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Search,
   Filter,
-  Download,
+  FileText,
+  Calendar,
   Eye,
   Trash2,
   Share2,
-  Calendar,
-  FileText,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-  MoreVertical,
+  Download,
+  RefreshCw,
   ChevronLeft,
   ChevronRight,
-  SlidersHorizontal
+  AlertCircle
 } from 'lucide-react'
 
-// Mock data para reportes
-const mockReports = [
-  {
-    id: 'RPT-2024-001',
-    name: 'Análisis Fiscal Q4 2024',
-    description: 'Análisis completo de facturación del cuarto trimestre',
-    modules: ['Módulo 03', 'Módulo 04', 'Módulo 08'],
-    status: 'completed',
-    createdAt: '2024-11-26T10:30:00',
-    completedAt: '2024-11-26T10:45:00',
-    documents: 12,
-    size: '15.4 MB',
-    createdBy: 'Eduardo Castillo'
-  },
-  {
-    id: 'RPT-2024-002',
-    name: 'Conciliación Bancaria Noviembre',
-    description: 'Revisión de estados de cuenta bancarios',
-    modules: ['Módulo 01'],
-    status: 'completed',
-    createdAt: '2024-11-25T14:00:00',
-    completedAt: '2024-11-25T14:12:00',
-    documents: 5,
-    size: '8.2 MB',
-    createdBy: 'Eduardo Castillo'
-  },
-  {
-    id: 'RPT-2024-003',
-    name: 'Nómina Quincenal Nov-2',
-    description: 'Procesamiento de nómina segunda quincena',
-    modules: ['Módulo 05', 'Módulo 06'],
-    status: 'processing',
-    createdAt: '2024-11-24T09:00:00',
-    completedAt: null,
-    documents: 8,
-    size: '6.1 MB',
-    createdBy: 'María López'
-  },
-  {
-    id: 'RPT-2024-004',
-    name: 'DIOT Octubre 2024',
-    description: 'Declaración informativa de operaciones',
-    modules: ['Módulo 09'],
-    status: 'completed',
-    createdAt: '2024-11-23T16:20:00',
-    completedAt: '2024-11-23T16:35:00',
-    documents: 3,
-    size: '2.4 MB',
-    createdBy: 'Eduardo Castillo'
-  },
-  {
-    id: 'RPT-2024-005',
-    name: 'ISN Octubre 2024',
-    description: 'Impuesto sobre nómina del mes',
-    modules: ['Módulo 05'],
-    status: 'failed',
-    createdAt: '2024-11-22T11:00:00',
-    completedAt: null,
-    documents: 2,
-    size: '1.8 MB',
-    createdBy: 'Eduardo Castillo'
-  },
-  {
-    id: 'RPT-2024-006',
-    name: 'SUA Bimestre Oct-Nov',
-    description: 'Cálculo de cuotas IMSS bimestral',
-    modules: ['Módulo 04'],
-    status: 'completed',
-    createdAt: '2024-11-20T08:30:00',
-    completedAt: '2024-11-20T08:55:00',
-    documents: 4,
-    size: '5.2 MB',
-    createdBy: 'María López'
-  },
-]
+interface Reporte {
+  id: string
+  nombre: string
+  descripcion: string | null
+  modulos_usados: string[]
+  estado: string
+  created_at: string
+  num_archivos: number
+}
 
-export default function HistorialReportesPage() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [showFilters, setShowFilters] = useState(false)
-  const [selectedReports, setSelectedReports] = useState<string[]>([])
+const MODULOS_NOMBRES: Record<string, string> = {
+  modulo1: 'Estados de Cuenta',
+  modulo3: 'XML - Facturas',
+  modulo4: 'SUA',
+  modulo5: 'ISN',
+  modulo6: 'Nómina',
+  modulo7: 'FONACOT',
+  modulo8: 'Control Fiscal',
+  modulo11: 'Estados Financieros'
+}
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-bechapra-success-light text-green-700">
-            <CheckCircle2 size={14} />
-            Completado
-          </span>
-        )
-      case 'processing':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-bechapra-info-light text-blue-700">
-            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-            Procesando
-          </span>
-        )
-      case 'failed':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-bechapra-error-light text-red-700">
-            <AlertCircle size={14} />
-            Error
-          </span>
-        )
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-bechapra-warning-light text-amber-700">
-            <Clock size={14} />
-            Pendiente
-          </span>
-        )
+export default function HistorialPage() {
+  const router = useRouter()
+  
+  const [reportes, setReportes] = useState<Reporte[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  
+  // Filtros
+  const [busqueda, setBusqueda] = useState('')
+  const [moduloFiltro, setModuloFiltro] = useState('')
+  const [fechaDesde, setFechaDesde] = useState('')
+  const [fechaHasta, setFechaHasta] = useState('')
+  
+  // Paginación
+  const [paginaActual, setPaginaActual] = useState(1)
+  const reportesPorPagina = 10
+
+  const cargarReportes = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      // Construir URL con parámetros de búsqueda
+      const params = new URLSearchParams()
+      if (busqueda) params.append('buscar', busqueda)
+      if (moduloFiltro) params.append('modulo', moduloFiltro)
+      if (fechaDesde) params.append('fecha_desde', fechaDesde)
+      if (fechaHasta) params.append('fecha_hasta', fechaHasta)
+      params.append('limit', '100') // Traer más reportes
+      
+      const url = `http://localhost:8000/api/reportes/lista?${params.toString()}`
+      console.log('🔍 Cargando reportes desde:', url)
+      
+      const response = await fetch(url)
+      
+      if (!response.ok) {
+        throw new Error('Error al cargar reportes')
+      }
+      
+      const data = await response.json()
+      console.log('✅ Reportes cargados:', data.length)
+      setReportes(data)
+      setPaginaActual(1) // Resetear a primera página al filtrar
+      
+    } catch (err: any) {
+      console.error('Error al cargar reportes:', err)
+      setError(err.message || 'Error desconocido al cargar reportes')
+    } finally {
+      setLoading(false)
     }
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('es-MX', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+  useEffect(() => {
+    cargarReportes()
+  }, []) // Cargar al montar el componente
+
+  const aplicarFiltros = () => {
+    cargarReportes()
   }
 
-  const filteredReports = mockReports.filter(report => {
-    const matchesSearch = report.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          report.id.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || report.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
+  const limpiarFiltros = () => {
+    setBusqueda('')
+    setModuloFiltro('')
+    setFechaDesde('')
+    setFechaHasta('')
+    setTimeout(() => cargarReportes(), 100)
+  }
 
-  const toggleSelectReport = (id: string) => {
-    setSelectedReports(prev =>
-      prev.includes(id)
-        ? prev.filter(r => r !== id)
-        : [...prev, id]
+  const eliminarReporte = async (id: string, nombre: string) => {
+    if (!confirm(`¿Estás seguro de eliminar el reporte "${nombre}"?`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/reportes/${id}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        alert('✅ Reporte eliminado correctamente')
+        cargarReportes() // Recargar la lista
+      } else {
+        alert('❌ Error al eliminar el reporte')
+      }
+    } catch (error) {
+      console.error('Error al eliminar:', error)
+      alert('❌ Error al eliminar el reporte')
+    }
+  }
+
+  // Paginación
+  const indexUltimoReporte = paginaActual * reportesPorPagina
+  const indexPrimerReporte = indexUltimoReporte - reportesPorPagina
+  const reportesPaginados = reportes.slice(indexPrimerReporte, indexUltimoReporte)
+  const totalPaginas = Math.ceil(reportes.length / reportesPorPagina)
+
+  const cambiarPagina = (numeroPagina: number) => {
+    setPaginaActual(numeroPagina)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-bechapra-light-3 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-bechapra-primary mx-auto mb-4"></div>
+          <p className="text-bechapra-text-secondary">Cargando reportes...</p>
+        </div>
+      </div>
     )
   }
 
-  const toggleSelectAll = () => {
-    if (selectedReports.length === filteredReports.length) {
-      setSelectedReports([])
-    } else {
-      setSelectedReports(filteredReports.map(r => r.id))
-    }
-  }
-
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="min-h-screen bg-bechapra-light-3">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-bechapra-text-primary">
-            Historial de Reportes
-          </h1>
-          <p className="text-bechapra-text-secondary mt-1">
-            Consulta y gestiona todos los reportes generados
-          </p>
+      <div className="bg-white border-b border-bechapra-border">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-bechapra-text-primary mb-2">
+                📊 Historial de Reportes
+              </h1>
+              <p className="text-bechapra-text-secondary">
+                {reportes.length} {reportes.length === 1 ? 'reporte guardado' : 'reportes guardados'}
+              </p>
+            </div>
+            <Link
+              href="/nuevo-reporte"
+              className="flex items-center gap-2 px-6 py-3 bg-bechapra-primary text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <FileText size={20} />
+              Nuevo Reporte
+            </Link>
+          </div>
         </div>
-
-        <Link href="/nuevo-reporte" className="btn-primary self-start">
-          <FileText size={18} />
-          Nuevo Reporte
-        </Link>
       </div>
 
-      {/* Filters bar */}
-      <div className="card-bechapra p-4">
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-bechapra-text-muted" size={18} />
-            <input
-              type="text"
-              placeholder="Buscar por nombre o ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-bechapra pl-11"
-            />
+      <div className="container mx-auto px-4 py-8">
+        {/* Filtros */}
+        <div className="bg-white rounded-xl border border-bechapra-border p-6 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter size={20} className="text-bechapra-primary" />
+            <h2 className="text-lg font-semibold text-bechapra-text-primary">Filtros</h2>
           </div>
 
-          {/* Status filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="input-bechapra w-full lg:w-48"
-          >
-            <option value="all">Todos los estados</option>
-            <option value="completed">Completados</option>
-            <option value="processing">Procesando</option>
-            <option value="failed">Con errores</option>
-          </select>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            {/* Búsqueda */}
+            <div>
+              <label className="block text-sm font-medium text-bechapra-text-primary mb-2">
+                Buscar
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-bechapra-text-muted" size={18} />
+                <input
+                  type="text"
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && aplicarFiltros()}
+                  placeholder="Nombre del reporte..."
+                  className="w-full pl-10 pr-4 py-2 border border-bechapra-border rounded-lg focus:outline-none focus:ring-2 focus:ring-bechapra-primary"
+                />
+              </div>
+            </div>
 
-          {/* More filters button */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`btn-secondary ${showFilters ? 'bg-bechapra-primary text-white' : ''}`}
-          >
-            <SlidersHorizontal size={18} />
-            Filtros
-          </button>
+            {/* Filtro por Módulo */}
+            <div>
+              <label className="block text-sm font-medium text-bechapra-text-primary mb-2">
+                Módulo
+              </label>
+              <select
+                value={moduloFiltro}
+                onChange={(e) => setModuloFiltro(e.target.value)}
+                className="w-full px-4 py-2 border border-bechapra-border rounded-lg focus:outline-none focus:ring-2 focus:ring-bechapra-primary"
+              >
+                <option value="">Todos los módulos</option>
+                <option value="modulo1">Estados de Cuenta</option>
+                <option value="modulo3">XML - Facturas</option>
+                <option value="modulo4">SUA</option>
+                <option value="modulo5">ISN</option>
+                <option value="modulo6">Nómina</option>
+                <option value="modulo7">FONACOT</option>
+                <option value="modulo8">Control Fiscal</option>
+                <option value="modulo11">Estados Financieros</option>
+              </select>
+            </div>
+
+            {/* Fecha Desde */}
+            <div>
+              <label className="block text-sm font-medium text-bechapra-text-primary mb-2">
+                Desde
+              </label>
+              <input
+                type="date"
+                value={fechaDesde}
+                onChange={(e) => setFechaDesde(e.target.value)}
+                className="w-full px-4 py-2 border border-bechapra-border rounded-lg focus:outline-none focus:ring-2 focus:ring-bechapra-primary"
+              />
+            </div>
+
+            {/* Fecha Hasta */}
+            <div>
+              <label className="block text-sm font-medium text-bechapra-text-primary mb-2">
+                Hasta
+              </label>
+              <input
+                type="date"
+                value={fechaHasta}
+                onChange={(e) => setFechaHasta(e.target.value)}
+                className="w-full px-4 py-2 border border-bechapra-border rounded-lg focus:outline-none focus:ring-2 focus:ring-bechapra-primary"
+              />
+            </div>
+          </div>
+
+          {/* Botones */}
+          <div className="flex gap-3">
+            <button
+              onClick={aplicarFiltros}
+              className="flex items-center gap-2 px-4 py-2 bg-bechapra-primary text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Search size={18} />
+              Aplicar Filtros
+            </button>
+            <button
+              onClick={limpiarFiltros}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <RefreshCw size={18} />
+              Limpiar
+            </button>
+          </div>
         </div>
 
-        {/* Extended filters */}
-        {showFilters && (
-          <div className="mt-4 pt-4 border-t border-bechapra-border-light">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-bechapra-text-secondary mb-2">
-                  Fecha desde
-                </label>
-                <input type="date" className="input-bechapra" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-bechapra-text-secondary mb-2">
-                  Fecha hasta
-                </label>
-                <input type="date" className="input-bechapra" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-bechapra-text-secondary mb-2">
-                  Módulo
-                </label>
-                <select className="input-bechapra">
-                  <option value="">Todos los módulos</option>
-                  <option value="1">Módulo 01: Estados de Cuenta</option>
-                  <option value="3">Módulo 03: XML</option>
-                  <option value="4">Módulo 04: SUA</option>
-                  <option value="5">Módulo 05: ISN</option>
-                </select>
-              </div>
+        {/* Error */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start gap-3">
+            <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
+            <div>
+              <h3 className="font-semibold text-red-900 mb-1">Error al cargar reportes</h3>
+              <p className="text-red-700 text-sm">{error}</p>
             </div>
           </div>
         )}
-      </div>
 
-      {/* Bulk actions */}
-      {selectedReports.length > 0 && (
-        <div className="card-bechapra p-4 bg-bechapra-light border-bechapra-primary animate-slide-up">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-bechapra-primary">
-              {selectedReports.length} reporte{selectedReports.length > 1 ? 's' : ''} seleccionado{selectedReports.length > 1 ? 's' : ''}
-            </span>
-            <div className="flex items-center gap-2">
-              <button className="btn-ghost text-sm">
-                <Download size={16} />
-                Descargar
-              </button>
-              <button className="btn-ghost text-sm">
-                <Share2 size={16} />
-                Compartir
-              </button>
-              <button className="btn-ghost text-sm text-bechapra-error hover:bg-bechapra-error-light">
-                <Trash2 size={16} />
-                Eliminar
-              </button>
-            </div>
+        {/* Lista de Reportes */}
+        {reportesPaginados.length === 0 ? (
+          <div className="bg-white rounded-xl border border-bechapra-border p-12 text-center">
+            <FileText size={64} className="mx-auto text-bechapra-text-muted mb-4" />
+            <h3 className="text-xl font-semibold text-bechapra-text-primary mb-2">
+              No hay reportes
+            </h3>
+            <p className="text-bechapra-text-secondary mb-6">
+              {busqueda || moduloFiltro || fechaDesde || fechaHasta
+                ? 'No se encontraron reportes con los filtros aplicados'
+                : 'Aún no has generado ningún reporte'}
+            </p>
+            <Link
+              href="/nuevo-reporte"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-bechapra-primary text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <FileText size={20} />
+              Crear Primer Reporte
+            </Link>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="space-y-4">
+            {reportesPaginados.map((reporte) => (
+              <div
+                key={reporte.id}
+                className="bg-white rounded-xl border border-bechapra-border p-6 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-bechapra-text-primary mb-2">
+                      {reporte.nombre}
+                    </h3>
+                    
+                    {reporte.descripcion && (
+                      <p className="text-sm text-bechapra-text-secondary mb-3">
+                        {reporte.descripcion}
+                      </p>
+                    )}
 
-      {/* Reports list */}
-      <div className="card-bechapra overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="table-bechapra">
-            <thead>
-              <tr>
-                <th className="w-12">
-                  <input
-                    type="checkbox"
-                    checked={selectedReports.length === filteredReports.length && filteredReports.length > 0}
-                    onChange={toggleSelectAll}
-                    className="w-4 h-4 rounded border-bechapra-border text-bechapra-primary focus:ring-bechapra-primary"
-                  />
-                </th>
-                <th>Reporte</th>
-                <th>Módulos</th>
-                <th>Documentos</th>
-                <th>Estado</th>
-                <th>Fecha</th>
-                <th className="w-20"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredReports.map((report) => (
-                <tr key={report.id} className="group">
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedReports.includes(report.id)}
-                      onChange={() => toggleSelectReport(report.id)}
-                      className="w-4 h-4 rounded border-bechapra-border text-bechapra-primary focus:ring-bechapra-primary"
-                    />
-                  </td>
-                  <td>
-                    <div>
-                      <p className="font-semibold text-bechapra-text-primary">{report.name}</p>
-                      <p className="text-xs text-bechapra-text-muted font-mono">{report.id}</p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="flex flex-wrap gap-1">
-                      {report.modules.map((mod) => (
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {reporte.modulos_usados.map((modulo) => (
                         <span
-                          key={mod}
-                          className="px-2 py-0.5 text-xs font-medium bg-bechapra-light text-bechapra-primary rounded"
+                          key={modulo}
+                          className="px-3 py-1 bg-bechapra-light-2 text-bechapra-primary text-sm rounded-full"
                         >
-                          {mod}
+                          {MODULOS_NOMBRES[modulo] || modulo}
                         </span>
                       ))}
                     </div>
-                  </td>
-                  <td>
-                    <div className="flex items-center gap-2">
-                      <FileText size={14} className="text-bechapra-text-muted" />
-                      <span>{report.documents}</span>
-                      <span className="text-bechapra-text-muted text-xs">({report.size})</span>
-                    </div>
-                  </td>
-                  <td>{getStatusBadge(report.status)}</td>
-                  <td>
-                    <div className="flex items-center gap-2 text-bechapra-text-secondary">
-                      <Calendar size={14} />
-                      <span className="text-sm">{formatDate(report.createdAt)}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-2 rounded-bechapra hover:bg-bechapra-light text-bechapra-text-muted hover:text-bechapra-primary transition-colors">
-                        <Eye size={16} />
-                      </button>
-                      <button className="p-2 rounded-bechapra hover:bg-bechapra-light text-bechapra-text-muted hover:text-bechapra-primary transition-colors">
-                        <Download size={16} />
-                      </button>
-                      <button className="p-2 rounded-bechapra hover:bg-bechapra-light text-bechapra-text-muted hover:text-bechapra-primary transition-colors">
-                        <MoreVertical size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
 
-        {/* Pagination */}
-        <div className="p-4 border-t border-bechapra-border-light flex items-center justify-between">
-          <p className="text-sm text-bechapra-text-secondary">
-            Mostrando <span className="font-medium">{filteredReports.length}</span> de <span className="font-medium">{mockReports.length}</span> reportes
-          </p>
-          <div className="flex items-center gap-2">
-            <button className="p-2 rounded-bechapra hover:bg-bechapra-light text-bechapra-text-muted disabled:opacity-50" disabled>
-              <ChevronLeft size={18} />
+                    <div className="flex items-center gap-4 text-sm text-bechapra-text-muted">
+                      <div className="flex items-center gap-1">
+                        <Calendar size={16} />
+                        {new Date(reporte.created_at).toLocaleDateString('es-MX', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <FileText size={16} />
+                        {reporte.num_archivos} {reporte.num_archivos === 1 ? 'archivo' : 'archivos'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 ml-4">
+                    <button
+                      onClick={() => router.push(`/reportes/ver?id=${reporte.id}`)}
+                      className="p-2 text-bechapra-primary hover:bg-bechapra-light-2 rounded-lg transition-colors"
+                      title="Ver reporte"
+                    >
+                      <Eye size={20} />
+                    </button>
+                    <button
+                      onClick={() => eliminarReporte(reporte.id, reporte.nombre)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Eliminar reporte"
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Paginación */}
+        {totalPaginas > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            <button
+              onClick={() => cambiarPagina(paginaActual - 1)}
+              disabled={paginaActual === 1}
+              className="p-2 border border-bechapra-border rounded-lg hover:bg-bechapra-light-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={20} />
             </button>
-            <span className="px-4 py-2 rounded-bechapra bg-bechapra-primary text-white text-sm font-medium">
-              1
-            </span>
-            <button className="px-4 py-2 rounded-bechapra hover:bg-bechapra-light text-bechapra-text-secondary text-sm">
-              2
-            </button>
-            <button className="p-2 rounded-bechapra hover:bg-bechapra-light text-bechapra-text-muted">
-              <ChevronRight size={18} />
+
+            {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((numeroPagina) => (
+              <button
+                key={numeroPagina}
+                onClick={() => cambiarPagina(numeroPagina)}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  paginaActual === numeroPagina
+                    ? 'bg-bechapra-primary text-white'
+                    : 'border border-bechapra-border hover:bg-bechapra-light-2'
+                }`}
+              >
+                {numeroPagina}
+              </button>
+            ))}
+
+            <button
+              onClick={() => cambiarPagina(paginaActual + 1)}
+              disabled={paginaActual === totalPaginas}
+              className="p-2 border border-bechapra-border rounded-lg hover:bg-bechapra-light-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight size={20} />
             </button>
           </div>
-        </div>
+        )}
       </div>
-
-      {/* Empty state */}
-      {filteredReports.length === 0 && (
-        <div className="card-bechapra p-12 text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-bechapra-light flex items-center justify-center">
-            <FileText className="text-bechapra-text-muted" size={32} />
-          </div>
-          <h3 className="text-lg font-semibold text-bechapra-text-primary mb-2">
-            No se encontraron reportes
-          </h3>
-          <p className="text-bechapra-text-secondary mb-6">
-            {searchQuery
-              ? 'Intenta con otros términos de búsqueda'
-              : 'Aún no has generado ningún reporte'}
-          </p>
-          <Link href="/nuevo-reporte" className="btn-primary">
-            Crear primer reporte
-          </Link>
-        </div>
-      )}
     </div>
   )
 }

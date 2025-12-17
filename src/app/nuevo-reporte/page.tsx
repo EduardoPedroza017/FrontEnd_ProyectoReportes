@@ -33,7 +33,7 @@ import {
 import { api } from '../../lib/api'
 import Link from 'next/link'
 import router from 'next/dist/shared/lib/router/router'
-import { useRouter } from 'next/dist/client/components/navigation'
+import { useRouter } from 'next/navigation'
 
 // Tipos
 interface FileWithPreview extends File {
@@ -242,6 +242,7 @@ const initialModules: ModuleData[] = [
 ]
 
 export default function NuevoReportePage() {
+  const router = useRouter() 
   const [modules, setModules] = useState<ModuleData[]>(initialModules)
   const [expandedModules, setExpandedModules] = useState<number[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState('')
@@ -532,12 +533,60 @@ export default function NuevoReportePage() {
       
       console.log('Resultados de procesamiento:', results)
 
-        // Guardar en sessionStorage
-        sessionStorage.setItem('reporteData', JSON.stringify(results))
-        console.log('💾 Datos guardados en sessionStorage:', results)
+      // Guardar en sessionStorage (fallback)
+      sessionStorage.setItem('reporteData', JSON.stringify(results))
+      
+      // Intentar guardar en base de datos
+      try {
+        console.log('💾 Guardando reporte en base de datos...')
+        
+        const reporteData = {
+          nombre: `Reporte ${new Date().toLocaleDateString('es-MX', { 
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}`,
+          descripcion: 'Reporte generado automáticamente',
+          datos_reporte: results,
+          modulos_usados: Object.keys(results),
+          num_archivos: getTotalFiles(),
+          archivos: []
+        }
 
+        const saveResponse = await fetch('http://localhost:8000/api/reportes/guardar', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(reporteData)
+        })
+
+        if (saveResponse.ok) {
+          const savedReporte = await saveResponse.json()
+          console.log('✅ Reporte guardado con ID:', savedReporte.id)
+          
+          sessionStorage.setItem('reporteId', savedReporte.id)
+          
+          setProcessingResults(results)
+          setShowResults(true)
+          
+          // Redirigir automáticamente después de 2 segundos
+          setTimeout(() => {
+            router.push(`/reportes/ver?id=${savedReporte.id}`)
+          }, 2000)
+        } else {
+          console.error('⚠️ No se pudo guardar en BD, usando sessionStorage')
+          setProcessingResults(results)
+          setShowResults(true)
+        }
+      } catch (error) {
+        console.error('❌ Error al guardar reporte:', error)
+        // Fallback: usar sessionStorage
         setProcessingResults(results)
         setShowResults(true)
+      }
 
       
       // Aquí puedes redirigir al usuario a ver los resultados

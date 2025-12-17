@@ -1,52 +1,89 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import {
-  Share2,
-  Link2,
+  FileText,
   Mail,
-  Copy,
-  Check,
-  Calendar,
+  Link2,
   Shield,
-  Eye,
-  Download,
-  Edit,
   Clock,
   Users,
-  Search,
   ChevronDown,
-  FileText,
-  ExternalLink,
+  Check,
+  Copy,
   QrCode,
-  Settings2
+  ExternalLink,
+  Search,
+  Calendar,
+  Eye,
+  Download,
+  MessageCircle,
+  Lock,
+  AlertCircle,
+  Loader2
 } from 'lucide-react'
 
-// Mock data
-const availableReports = [
-  { id: 'RPT-2024-001', name: 'Análisis Fiscal Q4 2024', date: '26 Nov 2024', modules: ['M03', 'M04', 'M08'] },
-  { id: 'RPT-2024-002', name: 'Conciliación Bancaria Nov', date: '25 Nov 2024', modules: ['M01'] },
-  { id: 'RPT-2024-003', name: 'Nómina Quincenal Nov-2', date: '24 Nov 2024', modules: ['M05', 'M06'] },
-  { id: 'RPT-2024-004', name: 'DIOT Octubre 2024', date: '23 Nov 2024', modules: ['M09'] },
-]
+interface Reporte {
+  id: string
+  nombre: string
+  created_at: string
+  modulos_usados: string[]
+  num_archivos: number
+}
 
-type Permission = 'view' | 'download' | 'edit'
-
-export default function CompartirReportesPage() {
-  const [selectedReport, setSelectedReport] = useState<string>('')
-  const [shareMethod, setShareMethod] = useState<'link' | 'email'>('link')
-  const [permissions, setPermissions] = useState<Permission[]>(['view'])
-  const [expirationDays, setExpirationDays] = useState<number>(7)
-  const [requirePassword, setRequirePassword] = useState(false)
-  const [password, setPassword] = useState('')
-  const [emails, setEmails] = useState('')
-  const [personalMessage, setPersonalMessage] = useState('')
-  const [generatedLink, setGeneratedLink] = useState('')
-  const [copied, setCopied] = useState(false)
+export default function CompartirNuevoPage() {
+  // Estados de reportes
+  const [reportes, setReportes] = useState<Reporte[]>([])
+  const [loadingReportes, setLoadingReportes] = useState(true)
+  
+  // Estados del formulario
+  const [selectedReport, setSelectedReport] = useState('')
   const [showReportDropdown, setShowReportDropdown] = useState(false)
   const [searchReport, setSearchReport] = useState('')
+  const [shareMethod, setShareMethod] = useState<'link' | 'email'>('link')
+  
+  // Permisos
+  const [permissions, setPermissions] = useState<string[]>(['view'])
+  
+  // Seguridad
+  const [requirePassword, setRequirePassword] = useState(false)
+  const [password, setPassword] = useState('')
+  const [expirationDate, setExpirationDate] = useState('')
+  const [accessLimit, setAccessLimit] = useState('')
+  const [notifyAccess, setNotifyAccess] = useState(false)
+  
+  // Destinatarios (para email)
+  const [recipients, setRecipients] = useState([{ name: '', email: '' }])
+  
+  // Estado de generación
+  const [generatedLink, setGeneratedLink] = useState('')
+  const [copied, setCopied] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const togglePermission = (perm: Permission) => {
+  // Cargar reportes al montar
+  useEffect(() => {
+    cargarReportes()
+  }, [])
+
+  const cargarReportes = async () => {
+    try {
+      setLoadingReportes(true)
+      const response = await fetch('http://localhost:8000/api/reportes/lista?limit=100')
+      
+      if (response.ok) {
+        const data = await response.json()
+        setReportes(data)
+      }
+    } catch (error) {
+      console.error('Error al cargar reportes:', error)
+    } finally {
+      setLoadingReportes(false)
+    }
+  }
+
+  const togglePermission = (perm: string) => {
     setPermissions(prev =>
       prev.includes(perm)
         ? prev.filter(p => p !== perm)
@@ -54,10 +91,106 @@ export default function CompartirReportesPage() {
     )
   }
 
-  const generateShareLink = () => {
-    // Simular generación de link
-    const linkId = Math.random().toString(36).substring(2, 10)
-    setGeneratedLink(`https://app.bechapra.com/shared/${linkId}`)
+  const addRecipient = () => {
+    setRecipients([...recipients, { name: '', email: '' }])
+  }
+
+  const removeRecipient = (index: number) => {
+    setRecipients(recipients.filter((_, i) => i !== index))
+  }
+
+  const updateRecipient = (index: number, field: 'name' | 'email', value: string) => {
+    const updated = [...recipients]
+    updated[index][field] = value
+    setRecipients(updated)
+  }
+
+  const generateShareLink = async () => {
+    if (!selectedReport) {
+      setError('Selecciona un reporte para compartir')
+      return
+    }
+
+    // Validaciones
+    if (shareMethod === 'email') {
+      const validRecipients = recipients.filter(r => r.email.trim() !== '')
+      if (validRecipients.length === 0) {
+        setError('Agrega al menos un destinatario con email válido')
+        return
+      }
+    }
+
+    if (requirePassword && !password) {
+      setError('Ingresa una contraseña')
+      return
+    }
+
+    try {
+      setLoading(true)
+      setError('')
+
+      const requestData = {
+        reporte_id: selectedReport,
+        metodo: shareMethod,
+        puede_ver: permissions.includes('view'),
+        puede_descargar: permissions.includes('download'),
+        puede_comentar: permissions.includes('comment'),
+        requiere_password: requirePassword,
+        password: requirePassword ? password : null,
+        fecha_expiracion: expirationDate || null,
+        limite_accesos: accessLimit ? parseInt(accessLimit) : null,
+        notificar_acceso: notifyAccess,
+        ...(shareMethod === 'email' && {
+          emails: recipients.map(r => r.email).filter(e => e.trim() !== ''),
+          nombres: recipients.map(r => r.name || r.email.split('@')[0]).filter(n => n.trim() !== '')
+        })
+      }
+
+      console.log('📤 Enviando request:', requestData)
+
+      const response = await fetch('http://localhost:8000/api/reportes/compartir/crear', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('✅ Respuesta:', data)
+        setGeneratedLink(data.enlace)
+        
+        if (shareMethod === 'email') {
+          alert('✅ Invitaciones enviadas correctamente')
+        }
+      } else {
+        const errorData = await response.json()
+        console.error('❌ Error del servidor:', errorData)
+        
+        // Manejar errores de validación de FastAPI
+        if (errorData.detail) {
+          if (Array.isArray(errorData.detail)) {
+            // Error de validación con múltiples campos
+            const errores = errorData.detail.map((e: any) => `${e.loc.join('.')}: ${e.msg}`).join(', ')
+            setError(`Errores de validación: ${errores}`)
+          } else if (typeof errorData.detail === 'string') {
+            // Error simple con mensaje de texto
+            setError(errorData.detail)
+          } else {
+            // Error con estructura de objeto
+            setError('Error al generar el enlace. Revisa los datos ingresados.')
+          }
+        } else {
+          setError('Error al generar el enlace')
+        }
+      }
+    } catch (error: any) {
+      console.error('Error al compartir:', error)
+      setError(error.message || 'Error al compartir el reporte')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const copyToClipboard = async () => {
@@ -66,12 +199,12 @@ export default function CompartirReportesPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const filteredReports = availableReports.filter(r =>
-    r.name.toLowerCase().includes(searchReport.toLowerCase()) ||
+  const filteredReports = reportes.filter(r =>
+    r.nombre.toLowerCase().includes(searchReport.toLowerCase()) ||
     r.id.toLowerCase().includes(searchReport.toLowerCase())
   )
 
-  const selectedReportData = availableReports.find(r => r.id === selectedReport)
+  const selectedReportData = reportes.find(r => r.id === selectedReport)
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -95,46 +228,55 @@ export default function CompartirReportesPage() {
               Seleccionar Reporte
             </h2>
 
-            <div className="relative">
-              <button
-                onClick={() => setShowReportDropdown(!showReportDropdown)}
-                className="input-bechapra w-full flex items-center justify-between text-left"
-              >
-                {selectedReportData ? (
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded bg-bechapra-light flex items-center justify-center">
-                      <FileText size={16} className="text-bechapra-primary" />
+            {loadingReportes ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="animate-spin text-bechapra-primary" size={32} />
+              </div>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={() => setShowReportDropdown(!showReportDropdown)}
+                  className="input-bechapra w-full flex items-center justify-between text-left"
+                >
+                  {selectedReportData ? (
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded bg-bechapra-light flex items-center justify-center">
+                        <FileText size={16} className="text-bechapra-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-bechapra-text-primary">{selectedReportData.nombre}</p>
+                        <p className="text-xs text-bechapra-text-muted">
+                          {new Date(selectedReportData.created_at).toLocaleDateString('es-MX')} • {selectedReportData.num_archivos} archivos
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-bechapra-text-primary">{selectedReportData.name}</p>
-                      <p className="text-xs text-bechapra-text-muted">{selectedReportData.id} • {selectedReportData.date}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <span className="text-bechapra-text-muted">Selecciona un reporte para compartir</span>
-                )}
-                <ChevronDown size={18} className={`text-bechapra-text-muted transition-transform ${showReportDropdown ? 'rotate-180' : ''}`} />
-              </button>
+                  ) : (
+                    <span className="text-bechapra-text-muted">Selecciona un reporte para compartir</span>
+                  )}
+                  <ChevronDown size={18} className={`text-bechapra-text-muted transition-transform ${showReportDropdown ? 'rotate-180' : ''}`} />
+                </button>
 
-              {showReportDropdown && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setShowReportDropdown(false)} />
-                  <div className="absolute z-50 mt-2 w-full bg-white rounded-bechapra-md shadow-dropdown border border-bechapra-border overflow-hidden">
+                {showReportDropdown && (
+                  <div className="absolute z-10 w-full mt-2 bg-white rounded-bechapra border border-bechapra-border shadow-bechapra-lg max-h-80 overflow-y-auto">
                     <div className="p-3 border-b border-bechapra-border-light">
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-bechapra-text-muted" size={16} />
+                        <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-bechapra-text-muted" />
                         <input
                           type="text"
-                          placeholder="Buscar reporte..."
                           value={searchReport}
                           onChange={(e) => setSearchReport(e.target.value)}
-                          className="input-bechapra pl-9 py-2 text-sm"
-                          onClick={(e) => e.stopPropagation()}
+                          placeholder="Buscar reporte..."
+                          className="w-full pl-10 pr-4 py-2 border border-bechapra-border-light rounded-bechapra focus:outline-none focus:ring-2 focus:ring-bechapra-primary"
                         />
                       </div>
                     </div>
-                    <div className="max-h-60 overflow-y-auto">
-                      {filteredReports.map((report) => (
+
+                    {filteredReports.length === 0 ? (
+                      <div className="p-8 text-center text-bechapra-text-muted">
+                        No se encontraron reportes
+                      </div>
+                    ) : (
+                      filteredReports.map((report) => (
                         <button
                           key={report.id}
                           onClick={() => {
@@ -142,126 +284,101 @@ export default function CompartirReportesPage() {
                             setShowReportDropdown(false)
                             setSearchReport('')
                           }}
-                          className={`w-full p-3 flex items-center gap-3 hover:bg-bechapra-light-3 transition-colors ${
-                            selectedReport === report.id ? 'bg-bechapra-light' : ''
-                          }`}
+                          className="w-full p-4 hover:bg-bechapra-light transition-colors flex items-center gap-3 border-b border-bechapra-border-light last:border-b-0"
                         >
-                          <div className="w-8 h-8 rounded bg-bechapra-light flex items-center justify-center flex-shrink-0">
-                            <FileText size={16} className="text-bechapra-primary" />
+                          <div className="w-10 h-10 rounded bg-bechapra-light flex items-center justify-center flex-shrink-0">
+                            <FileText size={18} className="text-bechapra-primary" />
                           </div>
-                          <div className="text-left flex-1">
-                            <p className="font-medium text-bechapra-text-primary text-sm">{report.name}</p>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-xs text-bechapra-text-muted">{report.id}</span>
-                              <span className="text-xs text-bechapra-text-muted">•</span>
-                              <span className="text-xs text-bechapra-text-muted">{report.date}</span>
-                            </div>
-                          </div>
-                          <div className="flex gap-1">
-                            {report.modules.map((m) => (
-                              <span key={m} className="px-1.5 py-0.5 text-[10px] font-medium bg-bechapra-light text-bechapra-primary rounded">
-                                {m}
-                              </span>
-                            ))}
+                          <div className="flex-1 text-left">
+                            <p className="font-medium text-bechapra-text-primary">{report.nombre}</p>
+                            <p className="text-sm text-bechapra-text-muted">
+                              {new Date(report.created_at).toLocaleDateString('es-MX')} • {report.modulos_usados.length} módulos
+                            </p>
                           </div>
                         </button>
-                      ))}
-                    </div>
+                      ))
+                    )}
                   </div>
-                </>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Share method */}
           <div className="card-bechapra p-6">
-            <h2 className="text-lg font-semibold text-bechapra-text-primary mb-4 flex items-center gap-2">
-              <Share2 size={20} className="text-bechapra-primary" />
-              Método de Compartir
-            </h2>
+            <h2 className="text-lg font-semibold text-bechapra-text-primary mb-4">Método de Compartir</h2>
 
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => setShareMethod('link')}
-                className={`p-4 rounded-bechapra-md border-2 transition-all ${
+                className={`p-4 rounded-bechapra border-2 transition-all ${
                   shareMethod === 'link'
                     ? 'border-bechapra-primary bg-bechapra-light'
                     : 'border-bechapra-border hover:border-bechapra-primary/50'
                 }`}
               >
-                <div className="flex flex-col items-center gap-2">
-                  <div className={`w-12 h-12 rounded-bechapra flex items-center justify-center ${
-                    shareMethod === 'link' ? 'bg-bechapra-primary text-white' : 'bg-bechapra-light text-bechapra-primary'
-                  }`}>
-                    <Link2 size={24} />
-                  </div>
-                  <span className={`font-semibold ${shareMethod === 'link' ? 'text-bechapra-primary' : 'text-bechapra-text-primary'}`}>
-                    Generar Enlace
-                  </span>
-                  <span className="text-xs text-bechapra-text-secondary">
-                    Crea un link compartible
-                  </span>
-                </div>
+                <Link2 size={24} className={shareMethod === 'link' ? 'text-bechapra-primary' : 'text-bechapra-text-muted'} />
+                <p className="mt-2 font-medium text-bechapra-text-primary">Enlace</p>
+                <p className="text-sm text-bechapra-text-muted mt-1">Comparte mediante URL</p>
               </button>
 
               <button
                 onClick={() => setShareMethod('email')}
-                className={`p-4 rounded-bechapra-md border-2 transition-all ${
+                className={`p-4 rounded-bechapra border-2 transition-all ${
                   shareMethod === 'email'
                     ? 'border-bechapra-primary bg-bechapra-light'
                     : 'border-bechapra-border hover:border-bechapra-primary/50'
                 }`}
               >
-                <div className="flex flex-col items-center gap-2">
-                  <div className={`w-12 h-12 rounded-bechapra flex items-center justify-center ${
-                    shareMethod === 'email' ? 'bg-bechapra-primary text-white' : 'bg-bechapra-light text-bechapra-primary'
-                  }`}>
-                    <Mail size={24} />
-                  </div>
-                  <span className={`font-semibold ${shareMethod === 'email' ? 'text-bechapra-primary' : 'text-bechapra-text-primary'}`}>
-                    Enviar por Correo
-                  </span>
-                  <span className="text-xs text-bechapra-text-secondary">
-                    Invita por email directamente
-                  </span>
-                </div>
+                <Mail size={24} className={shareMethod === 'email' ? 'text-bechapra-primary' : 'text-bechapra-text-muted'} />
+                <p className="mt-2 font-medium text-bechapra-text-primary">Email</p>
+                <p className="text-sm text-bechapra-text-muted mt-1">Envía invitaciones</p>
               </button>
             </div>
-
-            {/* Email recipients (if email method) */}
-            {shareMethod === 'email' && (
-              <div className="space-y-4 pt-4 border-t border-bechapra-border-light">
-                <div>
-                  <label className="block text-sm font-medium text-bechapra-text-primary mb-2">
-                    Destinatarios
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="correo@ejemplo.com, otro@ejemplo.com"
-                    value={emails}
-                    onChange={(e) => setEmails(e.target.value)}
-                    className="input-bechapra"
-                  />
-                  <p className="text-xs text-bechapra-text-muted mt-1">
-                    Separa múltiples correos con comas
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-bechapra-text-primary mb-2">
-                    Mensaje personalizado (opcional)
-                  </label>
-                  <textarea
-                    placeholder="Hola, te comparto este reporte..."
-                    value={personalMessage}
-                    onChange={(e) => setPersonalMessage(e.target.value)}
-                    rows={3}
-                    className="input-bechapra resize-none"
-                  />
-                </div>
-              </div>
-            )}
           </div>
+
+          {/* Recipients (email only) */}
+          {shareMethod === 'email' && (
+            <div className="card-bechapra p-6">
+              <h2 className="text-lg font-semibold text-bechapra-text-primary mb-4 flex items-center gap-2">
+                <Users size={20} className="text-bechapra-primary" />
+                Destinatarios
+              </h2>
+
+              <div className="space-y-3">
+                {recipients.map((recipient, index) => (
+                  <div key={index} className="flex gap-3">
+                    <input
+                      type="text"
+                      value={recipient.name}
+                      onChange={(e) => updateRecipient(index, 'name', e.target.value)}
+                      placeholder="Nombre"
+                      className="input-bechapra flex-1"
+                    />
+                    <input
+                      type="email"
+                      value={recipient.email}
+                      onChange={(e) => updateRecipient(index, 'email', e.target.value)}
+                      placeholder="correo@ejemplo.com"
+                      className="input-bechapra flex-1"
+                    />
+                    {recipients.length > 1 && (
+                      <button
+                        onClick={() => removeRecipient(index)}
+                        className="btn-ghost text-bechapra-error"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <button onClick={addRecipient} className="btn-secondary mt-3">
+                + Agregar destinatario
+              </button>
+            </div>
+          )}
 
           {/* Permissions */}
           <div className="card-bechapra p-6">
@@ -271,109 +388,143 @@ export default function CompartirReportesPage() {
             </h2>
 
             <div className="space-y-3">
-              {[
-                { key: 'view' as Permission, icon: Eye, label: 'Ver reporte', desc: 'Puede ver el contenido del reporte' },
-                { key: 'download' as Permission, icon: Download, label: 'Descargar', desc: 'Puede descargar archivos y PDF' },
-                { key: 'edit' as Permission, icon: Edit, label: 'Editar', desc: 'Puede agregar comentarios y notas' },
-              ].map(({ key, icon: Icon, label, desc }) => (
-                <label
-                  key={key}
-                  className={`flex items-center gap-4 p-4 rounded-bechapra-md border-2 cursor-pointer transition-all ${
-                    permissions.includes(key)
-                      ? 'border-bechapra-primary bg-bechapra-light'
-                      : 'border-bechapra-border hover:border-bechapra-primary/50'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={permissions.includes(key)}
-                    onChange={() => togglePermission(key)}
-                    className="sr-only"
-                  />
-                  <div className={`w-10 h-10 rounded-bechapra flex items-center justify-center ${
-                    permissions.includes(key) ? 'bg-bechapra-primary text-white' : 'bg-bechapra-light text-bechapra-text-muted'
-                  }`}>
-                    <Icon size={20} />
-                  </div>
-                  <div className="flex-1">
-                    <p className={`font-medium ${permissions.includes(key) ? 'text-bechapra-primary' : 'text-bechapra-text-primary'}`}>
-                      {label}
-                    </p>
-                    <p className="text-sm text-bechapra-text-secondary">{desc}</p>
-                  </div>
-                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                    permissions.includes(key)
-                      ? 'bg-bechapra-primary border-bechapra-primary'
-                      : 'border-bechapra-border'
-                  }`}>
-                    {permissions.includes(key) && <Check size={12} className="text-white" />}
-                  </div>
-                </label>
-              ))}
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={permissions.includes('view')}
+                  onChange={() => togglePermission('view')}
+                  className="w-5 h-5 rounded border-bechapra-border text-bechapra-primary focus:ring-2 focus:ring-bechapra-primary"
+                />
+                <div className="flex items-center gap-2">
+                  <Eye size={18} className="text-bechapra-text-muted" />
+                  <span className="text-bechapra-text-primary">Ver reporte</span>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={permissions.includes('download')}
+                  onChange={() => togglePermission('download')}
+                  className="w-5 h-5 rounded border-bechapra-border text-bechapra-primary focus:ring-2 focus:ring-bechapra-primary"
+                />
+                <div className="flex items-center gap-2">
+                  <Download size={18} className="text-bechapra-text-muted" />
+                  <span className="text-bechapra-text-primary">Descargar archivos</span>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={permissions.includes('comment')}
+                  onChange={() => togglePermission('comment')}
+                  className="w-5 h-5 rounded border-bechapra-border text-bechapra-primary focus:ring-2 focus:ring-bechapra-primary"
+                />
+                <div className="flex items-center gap-2">
+                  <MessageCircle size={18} className="text-bechapra-text-muted" />
+                  <span className="text-bechapra-text-primary">Agregar comentarios</span>
+                </div>
+              </label>
             </div>
           </div>
 
-          {/* Security options */}
+          {/* Security */}
           <div className="card-bechapra p-6">
             <h2 className="text-lg font-semibold text-bechapra-text-primary mb-4 flex items-center gap-2">
-              <Settings2 size={20} className="text-bechapra-primary" />
-              Opciones de Seguridad
+              <Lock size={20} className="text-bechapra-primary" />
+              Seguridad
             </h2>
 
             <div className="space-y-4">
-              {/* Expiration */}
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={requirePassword}
+                  onChange={(e) => setRequirePassword(e.target.checked)}
+                  className="w-5 h-5 mt-1 rounded border-bechapra-border text-bechapra-primary"
+                />
+                <div className="flex-1">
+                  <p className="text-bechapra-text-primary">Proteger con contraseña</p>
+                  <p className="text-sm text-bechapra-text-muted mt-1">Los usuarios necesitarán una contraseña para acceder</p>
+                  
+                  {requirePassword && (
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Ingresa una contraseña"
+                      className="input-bechapra mt-3"
+                    />
+                  )}
+                </div>
+              </label>
+
               <div>
                 <label className="block text-sm font-medium text-bechapra-text-primary mb-2">
-                  <Clock size={16} className="inline mr-2" />
-                  Expiración del enlace
+                  Fecha de expiración (opcional)
                 </label>
-                <select
-                  value={expirationDays}
-                  onChange={(e) => setExpirationDays(Number(e.target.value))}
+                <input
+                  type="date"
+                  value={expirationDate}
+                  onChange={(e) => setExpirationDate(e.target.value)}
                   className="input-bechapra"
-                >
-                  <option value={1}>1 día</option>
-                  <option value={7}>7 días</option>
-                  <option value={30}>30 días</option>
-                  <option value={90}>90 días</option>
-                  <option value={0}>Sin expiración</option>
-                </select>
+                  min={new Date().toISOString().split('T')[0]}
+                />
               </div>
 
-              {/* Password protection */}
-              <div className="space-y-3">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={requirePassword}
-                    onChange={(e) => setRequirePassword(e.target.checked)}
-                    className="w-4 h-4 rounded border-bechapra-border text-bechapra-primary focus:ring-bechapra-primary"
-                  />
-                  <span className="text-sm font-medium text-bechapra-text-primary">
-                    Proteger con contraseña
-                  </span>
+              <div>
+                <label className="block text-sm font-medium text-bechapra-text-primary mb-2">
+                  Límite de accesos (opcional)
                 </label>
-
-                {requirePassword && (
-                  <input
-                    type="password"
-                    placeholder="Ingresa una contraseña"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="input-bechapra"
-                  />
-                )}
+                <input
+                  type="number"
+                  value={accessLimit}
+                  onChange={(e) => setAccessLimit(e.target.value)}
+                  placeholder="Ej: 10"
+                  className="input-bechapra"
+                  min="1"
+                />
               </div>
+
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={notifyAccess}
+                  onChange={(e) => setNotifyAccess(e.target.checked)}
+                  className="w-5 h-5 mt-1 rounded border-bechapra-border text-bechapra-primary"
+                />
+                <div>
+                  <p className="text-bechapra-text-primary">Notificar accesos</p>
+                  <p className="text-sm text-bechapra-text-muted mt-1">Recibe un correo cada vez que alguien acceda al reporte</p>
+                </div>
+              </label>
             </div>
           </div>
 
-          {/* Action button */}
+          {/* Error message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-bechapra p-4 flex items-start gap-3">
+              <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
+              <div>
+                <p className="font-semibold text-red-900">Error</p>
+                <p className="text-red-700 text-sm mt-1">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Generate button */}
           <button
             onClick={generateShareLink}
-            disabled={!selectedReport}
-            className="btn-primary w-full py-4 text-lg"
+            disabled={loading || !selectedReport}
+            className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {shareMethod === 'link' ? (
+            {loading ? (
+              <>
+                <Loader2 size={20} className="animate-spin" />
+                Generando...
+              </>
+            ) : shareMethod === 'link' ? (
               <>
                 <Link2 size={20} />
                 Generar Enlace Compartible
@@ -410,12 +561,14 @@ export default function CompartirReportesPage() {
                     {copied ? <Check size={16} /> : <Copy size={16} />}
                     {copied ? 'Copiado' : 'Copiar'}
                   </button>
-                  <button className="btn-ghost p-3">
-                    <QrCode size={18} />
-                  </button>
-                  <button className="btn-ghost p-3">
+                  <a
+                    href={generatedLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-ghost p-3"
+                  >
                     <ExternalLink size={18} />
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>
@@ -429,7 +582,7 @@ export default function CompartirReportesPage() {
               <div className="flex items-center justify-between py-2 border-b border-bechapra-border-light">
                 <span className="text-sm text-bechapra-text-secondary">Reporte</span>
                 <span className="text-sm font-medium text-bechapra-text-primary">
-                  {selectedReportData?.name || '-'}
+                  {selectedReportData?.nombre || '-'}
                 </span>
               </div>
 
@@ -442,39 +595,27 @@ export default function CompartirReportesPage() {
 
               <div className="flex items-center justify-between py-2 border-b border-bechapra-border-light">
                 <span className="text-sm text-bechapra-text-secondary">Permisos</span>
-                <div className="flex gap-1">
-                  {permissions.map((p) => (
-                    <span key={p} className="px-2 py-0.5 text-xs font-medium bg-bechapra-light text-bechapra-primary rounded capitalize">
-                      {p === 'view' ? 'Ver' : p === 'download' ? 'Descargar' : 'Editar'}
-                    </span>
-                  ))}
+                <span className="text-sm font-medium text-bechapra-text-primary">
+                  {permissions.length} activos
+                </span>
+              </div>
+
+              {requirePassword && (
+                <div className="flex items-center justify-between py-2 border-b border-bechapra-border-light">
+                  <span className="text-sm text-bechapra-text-secondary">Contraseña</span>
+                  <span className="text-sm font-medium text-green-600">✓ Activada</span>
                 </div>
-              </div>
+              )}
 
-              <div className="flex items-center justify-between py-2 border-b border-bechapra-border-light">
-                <span className="text-sm text-bechapra-text-secondary">Expiración</span>
-                <span className="text-sm font-medium text-bechapra-text-primary">
-                  {expirationDays === 0 ? 'Sin expiración' : `${expirationDays} días`}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between py-2">
-                <span className="text-sm text-bechapra-text-secondary">Contraseña</span>
-                <span className="text-sm font-medium text-bechapra-text-primary">
-                  {requirePassword ? 'Sí' : 'No'}
-                </span>
-              </div>
+              {expirationDate && (
+                <div className="flex items-center justify-between py-2 border-b border-bechapra-border-light">
+                  <span className="text-sm text-bechapra-text-secondary">Expira</span>
+                  <span className="text-sm font-medium text-bechapra-text-primary">
+                    {new Date(expirationDate).toLocaleDateString('es-MX')}
+                  </span>
+                </div>
+              )}
             </div>
-          </div>
-
-          {/* Tips */}
-          <div className="p-4 bg-bechapra-info-light rounded-bechapra-md">
-            <h4 className="font-medium text-blue-800 mb-2 text-sm">💡 Consejos</h4>
-            <ul className="text-xs text-blue-700 space-y-1">
-              <li>• Los enlaces con contraseña son más seguros</li>
-              <li>• Configura una expiración corta para datos sensibles</li>
-              <li>• Puedes revocar el acceso en cualquier momento</li>
-            </ul>
           </div>
         </div>
       </div>

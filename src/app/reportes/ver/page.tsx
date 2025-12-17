@@ -29,70 +29,53 @@ export default function VerReportePage() {
 
   useEffect(() => {
     const cargarReporte = async () => {
-      // Debug: Mostrar parámetros de URL
-      console.log('🔍 URL actual:', window.location.href)
-      console.log('🔍 Search params:', searchParams.toString())
-      console.log('🔍 Reporte ID:', reporteId)
-
       try {
         setLoading(true)
-
-        // Estrategia 1: Intentar cargar desde sessionStorage
+        
+        // Primero, intentar cargar desde la URL con ID
+        if (reporteId) {
+          console.log('🔍 Intentando cargar reporte con ID:', reporteId)
+          
+          try {
+            const response = await fetch(`http://localhost:8000/api/reportes/${reporteId}`)
+            
+            if (response.ok) {
+              const data = await response.json()
+              console.log('✅ Reporte cargado desde base de datos:', data)
+              setReporteData(data.datos_reporte)
+              return
+            } else {
+              console.warn('⚠️ No se pudo cargar desde BD, intentando sessionStorage...')
+            }
+          } catch (error) {
+            console.error('❌ Error al cargar desde BD:', error)
+          }
+        }
+        
+        // Fallback: intentar cargar desde sessionStorage
         const sessionData = sessionStorage.getItem('reporteData')
         if (sessionData) {
           console.log('📦 Cargando datos desde sessionStorage...')
           const data = JSON.parse(sessionData)
           console.log('✅ Datos cargados desde sessionStorage:', data)
           setReporteData(data)
-          setLoading(false)
           return
         }
-
-        // Estrategia 2: Intentar cargar desde API con ID
-        if (!reporteId) {
-          console.error('❌ No se encontró ID en la URL ni datos en sessionStorage')
-          setError('No se especificó un ID de reporte. La URL debe incluir ?id=XXXXX')
-          setLoading(false)
-          return
-        }
-
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-        const url = `${apiUrl}/get-report/${reporteId}`
         
-        console.log('📡 Intentando cargar desde API:', url)
+        // Si no hay ID ni sessionStorage, mostrar error
+        console.error('❌ No se encontró ID en la URL ni datos en sessionStorage')
+        setError('No se encontraron datos del reporte. Por favor genera un nuevo reporte.')
         
-        const response = await fetch(url)
-        
-        console.log('📡 Respuesta del servidor:', {
-          status: response.status,
-          statusText: response.statusText,
-          ok: response.ok
-        })
-        
-        if (!response.ok) {
-          const errorText = await response.text()
-          console.error('❌ Error del servidor:', errorText)
-          throw new Error(`Error ${response.status}: ${response.statusText}`)
-        }
-
-        const data = await response.json()
-        console.log('✅ Datos del reporte cargados desde API:', data)
-        
-        if (!data || typeof data !== 'object') {
-          throw new Error('Respuesta del servidor inválida')
-        }
-        
-        setReporteData(data)
-      } catch (err) {
-        console.error('❌ Error al cargar reporte:', err)
-        setError(err instanceof Error ? err.message : 'Error desconocido al cargar el reporte')
+      } catch (err: any) {
+        console.error('Error al cargar reporte:', err)
+        setError(err.message || 'Error desconocido al cargar el reporte')
       } finally {
         setLoading(false)
       }
     }
 
     cargarReporte()
-  }, [reporteId, searchParams])
+  }, [reporteId])
 
   const descargarReportePDF = async () => {
     if (!reporteId) return

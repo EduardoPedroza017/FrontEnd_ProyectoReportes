@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import './shared.css'
 
 export const metadata: Metadata = {
   title: 'Reporte Compartido - Bechapra',
@@ -11,8 +12,8 @@ export default function SharedLayout({
   children: React.ReactNode
 }) {
   return (
-    <>
+    <div className="shared-route">
       {children}
-    </>
+    </div>
   )
 }

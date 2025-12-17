@@ -8,7 +8,13 @@ import {
   AlertCircle,
   Calendar,
   FileText,
-  CheckCircle2
+  DollarSign,
+  Receipt,
+  Building2,
+  Users,
+  CreditCard,
+  TrendingUp,
+  Package
 } from 'lucide-react'
 
 // Importar componentes de módulos (rutas relativas)
@@ -36,15 +42,15 @@ interface ReporteCompartido {
   }
 }
 
-const MODULOS_NOMBRES: Record<string, { nombre: string; descripcion: string; icono: string }> = {
-  modulo1: { nombre: 'Estados de Cuenta', descripcion: 'Análisis de movimientos bancarios', icono: '💰' },
-  modulo3: { nombre: 'XML - Facturas', descripcion: 'Conciliación de facturas emitidas y recibidas', icono: '📋' },
-  modulo4: { nombre: 'SUA', descripcion: 'Sistema Único de Autodeterminación', icono: '🏛️' },
-  modulo5: { nombre: 'ISN', descripcion: 'Impuesto Sobre Nómina', icono: '💼' },
-  modulo6: { nombre: 'Nómina', descripcion: 'Gestión y análisis de nómina empresarial', icono: '👥' },
-  modulo7: { nombre: 'FONACOT', descripcion: 'Análisis de créditos y descuentos', icono: '💳' },
-  modulo8: { nombre: 'Control Fiscal', descripcion: 'Declaraciones ISR e IVA', icono: '📊' },
-  modulo11: { nombre: 'Estados Financieros', descripcion: 'Balance General y Estado de Resultados', icono: '📈' }
+const MODULOS_NOMBRES: Record<string, { nombre: string; descripcion: string; Icon: any }> = {
+  modulo1: { nombre: 'Estados de Cuenta', descripcion: 'Análisis de movimientos bancarios', Icon: DollarSign },
+  modulo3: { nombre: 'XML - Facturas', descripcion: 'Conciliación de facturas emitidas y recibidas', Icon: Receipt },
+  modulo4: { nombre: 'SUA', descripcion: 'Sistema Único de Autodeterminación', Icon: Building2 },
+  modulo5: { nombre: 'ISN', descripcion: 'Impuesto Sobre Nómina', Icon: Package },
+  modulo6: { nombre: 'Nómina', descripcion: 'Gestión y análisis de nómina empresarial', Icon: Users },
+  modulo7: { nombre: 'FONACOT', descripcion: 'Análisis de créditos y descuentos', Icon: CreditCard },
+  modulo8: { nombre: 'Control Fiscal', descripcion: 'Declaraciones ISR e IVA', Icon: TrendingUp },
+  modulo11: { nombre: 'Estados Financieros', descripcion: 'Balance General y Estado de Resultados', Icon: FileText }
 }
 
 export default function ReporteCompartidoPublicoPage({ params }: { params: { token: string } }) {
@@ -318,6 +324,8 @@ export default function ReporteCompartidoPublicoPage({ params }: { params: { tok
                 const info = MODULOS_NOMBRES[modulo]
                 if (!info) return null
                 
+                const IconComponent = info.Icon
+                
                 return (
                   <button
                     key={modulo}
@@ -328,7 +336,10 @@ export default function ReporteCompartidoPublicoPage({ params }: { params: { tok
                         : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
                     }`}
                   >
-                    <div className="text-2xl mb-2">{info.icono}</div>
+                    <IconComponent 
+                      className={`mb-2 ${moduloActivo === modulo ? 'text-blue-600' : 'text-gray-400'}`} 
+                      size={24} 
+                    />
                     <p className={`text-sm font-medium ${moduloActivo === modulo ? 'text-blue-700' : 'text-gray-900'}`}>
                       {info.nombre}
                     </p>
@@ -345,17 +356,26 @@ export default function ReporteCompartidoPublicoPage({ params }: { params: { tok
           {moduloActivo && (
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-2xl">
-                  {MODULOS_NOMBRES[moduloActivo]?.icono}
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    {MODULOS_NOMBRES[moduloActivo]?.nombre}
-                  </h2>
-                  <p className="text-sm text-gray-600">
-                    {MODULOS_NOMBRES[moduloActivo]?.descripcion}
-                  </p>
-                </div>
+                {(() => {
+                  const info = MODULOS_NOMBRES[moduloActivo]
+                  if (!info) return null
+                  const IconComponent = info.Icon
+                  return (
+                    <>
+                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <IconComponent className="text-blue-600" size={24} />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-900">
+                          {info.nombre}
+                        </h2>
+                        <p className="text-sm text-gray-600">
+                          {info.descripcion}
+                        </p>
+                      </div>
+                    </>
+                  )
+                })()}
               </div>
 
               {/* Render module component */}

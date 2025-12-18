@@ -335,6 +335,66 @@ export default function NuevoReportePage() {
     return modules.filter(mod => getModuleFileCount(mod) > 0).length
   }
 
+  // ============================================
+  // Construir array de archivos para BD
+  // ============================================
+  const construirArrayArchivos = () => {
+    const archivosArray: any[] = []
+    
+    // Recorrer todos los módulos activos
+    modules.forEach((module) => {
+      const moduloId = `modulo${module.id}`
+      
+      // Procesar fileSlots (módulos con slots definidos)
+      module.fileSlots.forEach((slot) => {
+        if (slot.file) {
+          // Si es múltiple (array)
+          if (Array.isArray(slot.file)) {
+            slot.file.forEach((file: File) => {
+              archivosArray.push(crearArchivoObjeto(file, moduloId, slot.id))
+            })
+          } else {
+            // Archivo único
+            archivosArray.push(crearArchivoObjeto(slot.file as File, moduloId, slot.id))
+          }
+        }
+      })
+      
+      // Procesar files genéricos (módulos sin slots)
+      module.files.forEach((file: File) => {
+        archivosArray.push(crearArchivoObjeto(file, moduloId, 'archivo_generico'))
+      })
+    })
+    
+    console.log('📦 ARCHIVOS A GUARDAR:', archivosArray)
+    console.log('📦 TOTAL:', archivosArray.length)
+    
+    return archivosArray
+  }
+
+  // Función auxiliar
+  const crearArchivoObjeto = (file: File, modulo: string, tipo_documento: string) => {
+    let tipoArchivo = 'unknown'
+    
+    if (file.name.endsWith('.pdf')) tipoArchivo = 'pdf'
+    else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) tipoArchivo = 'excel'
+    else if (file.name.endsWith('.zip')) tipoArchivo = 'zip'
+    else if (file.name.endsWith('.xml')) tipoArchivo = 'xml'
+    else if (file.name.endsWith('.txt')) tipoArchivo = 'txt'
+    
+    return {
+      nombre_original: file.name,
+      nombre_guardado: file.name,
+      ruta_almacenamiento: `/uploads/${file.name}`,
+      tipo_archivo: tipoArchivo,
+      tamano_bytes: file.size,
+      modulo: modulo,
+      tipo_documento: tipo_documento
+    }
+  }
+
+
+    
   const processAllModules = async () => {
     setIsProcessing(true)
     
@@ -552,7 +612,7 @@ export default function NuevoReportePage() {
           datos_reporte: results,
           modulos_usados: Object.keys(results),
           num_archivos: getTotalFiles(),
-          archivos: []
+          archivos: construirArrayArchivos()
         }
 
         const saveResponse = await fetch('http://localhost:8000/api/reportes/guardar', {

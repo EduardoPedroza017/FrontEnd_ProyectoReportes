@@ -257,31 +257,51 @@ export default function NuevoReportePage() {
   }
 
   const handleFileChange = (moduleId: number, slotId: string, files: FileList | null) => {
-    if (!files) return
+    if (!files || files.length === 0) {
+      console.log('⚠️ No hay archivos para procesar')
+      return
+    }
 
-    setModules(prev => prev.map(mod => {
-      if (mod.id !== moduleId) return mod
+    console.log('🔍 handleFileChange:', { moduleId, slotId, files: Array.from(files).map(f => f.name) })
 
-      const updatedSlots = mod.fileSlots.map(slot => {
-        if (slot.id !== slotId) return slot
-        
-        if (slot.multiple) {
-          const existingFiles = Array.isArray(slot.file) ? slot.file : []
-          return { ...slot, file: [...existingFiles, ...Array.from(files)] }
+    setModules(prev => {
+      return prev.map(mod => {
+        // Solo procesar el módulo correcto
+        if (mod.id !== moduleId) return mod
+
+        // Si tiene slots definidos
+        if (mod.fileSlots.length > 0) {
+          const newSlots = mod.fileSlots.map(slot => {
+            // Solo actualizar el slot correcto
+            if (slot.id !== slotId) return slot
+
+            // Manejo de archivos múltiples
+            if (slot.multiple) {
+              const existingFiles = Array.isArray(slot.file) ? slot.file : []
+              return { 
+                ...slot, 
+                file: [...existingFiles, ...Array.from(files)] 
+              }
+            }
+            
+            // Archivo único
+            return { 
+              ...slot, 
+              file: files[0] 
+            }
+          })
+
+          console.log('✅ Slots actualizados:', newSlots)
+          return { ...mod, fileSlots: newSlots }
         }
-        return { ...slot, file: files[0] }
-      })
 
-      // Si no tiene slots definidos, agregar a files general
-      if (mod.fileSlots.length === 0) {
+        // Si no tiene slots, usar files general
         return {
           ...mod,
           files: [...mod.files, ...Array.from(files)]
         }
-      }
-
-      return { ...mod, fileSlots: updatedSlots }
-    }))
+      })
+    })
   }
 
   const removeFile = (moduleId: number, slotId?: string, fileIndex?: number) => {
@@ -867,48 +887,44 @@ export default function NuevoReportePage() {
     multiple?: boolean
     currentFile?: FileWithPreview | FileWithPreview[]
   }) => {
-    const onDrop = useCallback((acceptedFiles: File[]) => {
+    
+    // Callback para manejar drop de archivos
+    const handleDrop = useCallback((acceptedFiles: File[]) => {
+      console.log('📥 Archivos dropeados:', acceptedFiles.map(f => f.name))
       const dataTransfer = new DataTransfer()
       acceptedFiles.forEach(file => dataTransfer.items.add(file))
       handleFileChange(moduleId, slotId, dataTransfer.files)
-    }, [moduleId, slotId, handleFileChange])
+    }, [moduleId, slotId]) // NO incluir handleFileChange aquí
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
-      onDrop,
-      accept: accept.reduce((acc, type) => {
-        const mimeMap: Record<string, string[]> = {
-          '.pdf': ['application/pdf'],
-          '.xlsx': ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
-          '.xls': ['application/vnd.ms-excel'],
-          '.zip': ['application/zip'],
-          '.txt': ['text/plain'],
-          '.xml': ['application/xml', 'text/xml'],
-          '.jpg': ['image/jpeg'],
-          '.jpeg': ['image/jpeg'],
-          '.png': ['image/png'],
-        }
-        type.split(',').forEach(t => {
-          const trimmed = t.trim()
-          if (mimeMap[trimmed]) {
-            mimeMap[trimmed].forEach(mime => {
-              if (!acc[mime]) acc[mime] = []
-            })
-          }
-        })
-        return acc
-      }, {} as Record<string, string[]>),
+      onDrop: handleDrop,
+      accept: {
+        'application/pdf': ['.pdf'],
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+        'application/vnd.ms-excel': ['.xls'],
+        'application/zip': ['.zip'],
+        'application/x-zip-compressed': ['.zip'],
+        'text/plain': ['.txt'],
+        'application/xml': ['.xml'],
+        'text/xml': ['.xml'],
+        'image/jpeg': ['.jpg', '.jpeg'],
+        'image/png': ['.png'],
+      },
       multiple
     })
 
     const hasFile = currentFile && (Array.isArray(currentFile) ? currentFile.length > 0 : true)
 
+    console.log(`🎨 Renderizando ${slotId}:`, { hasFile, currentFile })
+
+    // Si ya hay archivo(s) cargado(s)
     if (hasFile) {
       const files = Array.isArray(currentFile) ? currentFile : [currentFile]
       return (
         <div className="space-y-2">
           {files.map((file, idx) => (
             <div
-              key={idx}
+              key={`${file.name}-${idx}`}
               className="flex items-center justify-between p-3 bg-bechapra-success-light rounded-bechapra border border-green-200"
             >
               <div className="flex items-center gap-3">
@@ -941,6 +957,7 @@ export default function NuevoReportePage() {
       )
     }
 
+    // Vista de upload vacía
     return (
       <div
         {...getRootProps()}

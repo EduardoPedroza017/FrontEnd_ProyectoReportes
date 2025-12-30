@@ -871,7 +871,7 @@ export default function NuevoReportePage() {
       const dataTransfer = new DataTransfer()
       acceptedFiles.forEach(file => dataTransfer.items.add(file))
       handleFileChange(moduleId, slotId, dataTransfer.files)
-    }, [moduleId, slotId])
+    }, [moduleId, slotId, handleFileChange])
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
       onDrop,
@@ -1083,6 +1083,7 @@ export default function NuevoReportePage() {
                               )}
                             </div>
                             <UploadArea
+                              key={`upload-${mod.id}-${slot.id}-${slot.file ? Date.now() : 'empty'}`}
                               moduleId={mod.id}
                               slotId={slot.id}
                               label={slot.label}

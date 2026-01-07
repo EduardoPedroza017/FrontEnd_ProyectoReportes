@@ -75,6 +75,12 @@ const navigationItems: NavItem[] = [
       },
     ]
   },
+  {
+    label: 'Centro de Documentos',
+    href: '/centro-documentos',
+    icon: <FolderOpen size={20} />,
+    badge: 'Nuevo'
+  },
 ]
 
 const bottomNavItems: NavItem[] = [

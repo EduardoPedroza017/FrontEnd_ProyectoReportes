@@ -89,27 +89,32 @@ export default function CentroDocumentosPage() {
         fetch('http://localhost:8000/api/centro-documentos/periodos?limit=20')
       ])
 
+      // Variables locales para almacenar los datos
+      let clientesData: Cliente[] = []
+      let plantillasData: Plantilla[] = []
+      let periodosData: Periodo[] = []
+
       if (clientesRes.ok) {
-        const clientesData = await clientesRes.json()
+        clientesData = await clientesRes.json()
         setClientes(clientesData)
       }
 
       if (plantillasRes.ok) {
-        const plantillasData = await plantillasRes.json()
+        plantillasData = await plantillasRes.json()
         setPlantillas(plantillasData)
       }
 
       if (periodosRes.ok) {
-        const periodosData = await periodosRes.json()
+        periodosData = await periodosRes.json()
         setPeriodos(periodosData)
       }
 
-      // Calcular estadísticas
+      // ✅ CORRECCIÓN: Usar las variables locales en lugar de los estados
       setStats({
-        total_clientes: clientes.length,
-        total_plantillas: plantillas.length,
-        periodos_pendientes: periodos.filter(p => ['pendiente', 'parcial'].includes(p.estado)).length,
-        periodos_completos: periodos.filter(p => p.estado === 'completo').length
+        total_clientes: clientesData.length,
+        total_plantillas: plantillasData.length,
+        periodos_pendientes: periodosData.filter(p => ['pendiente', 'parcial'].includes(p.estado)).length,
+        periodos_completos: periodosData.filter(p => p.estado === 'completo').length
       })
 
     } catch (error) {

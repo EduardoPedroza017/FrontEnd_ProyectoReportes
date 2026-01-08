@@ -57,8 +57,9 @@ export default function UploadPublicoPage() {
   const validarToken = async () => {
     setLoading(true)
     try {
+      // ✅ CORREGIDO: Usa /api en lugar de http://localhost:8000
       const res = await fetch(
-        `http://localhost:8000/api/centro-documentos/periodos/upload/${token}`
+        `/api/centro-documentos/periodos/upload/${token}`
       )
       const data = await res.json()
       setTokenInfo(data)
@@ -126,8 +127,9 @@ export default function UploadPublicoPage() {
         formData.append('notas', notas.trim())
       }
 
+      // ✅ CORREGIDO: Usa /api en lugar de http://localhost:8000
       const res = await fetch(
-        `http://localhost:8000/api/centro-documentos/periodos/upload/${token}`,
+        `/api/centro-documentos/periodos/upload/${token}`,
         {
           method: 'POST',
           body: formData
@@ -256,7 +258,7 @@ export default function UploadPublicoPage() {
               </div>
               <div>
                 <p className="text-xs text-gray-500">Cliente</p>
-                <p className="font-medium text-gray-900">{tokenInfo.cliente_nombre}</p>
+                <p className="font-semibold text-gray-900">{tokenInfo.cliente_nombre}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -265,7 +267,7 @@ export default function UploadPublicoPage() {
               </div>
               <div>
                 <p className="text-xs text-gray-500">Periodo</p>
-                <p className="font-medium text-gray-900">{tokenInfo.periodo_str}</p>
+                <p className="font-semibold text-gray-900">{tokenInfo.periodo_str}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -274,140 +276,128 @@ export default function UploadPublicoPage() {
               </div>
               <div>
                 <p className="text-xs text-gray-500">Módulo</p>
-                <p className="font-medium text-gray-900">{tokenInfo.modulo_nombre}</p>
+                <p className="font-semibold text-gray-900">{tokenInfo.modulo_nombre}</p>
               </div>
             </div>
           </div>
 
           {tokenInfo.instrucciones && (
-            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-sm text-yellow-800">
+            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-sm text-amber-800">
                 <strong>Instrucciones:</strong> {tokenInfo.instrucciones}
               </p>
             </div>
           )}
         </div>
 
+        {/* Upload Area */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <div
+            className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
+              dragActive
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-300 hover:border-gray-400'
+            }`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <CloudUpload className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-700 font-medium mb-2">
+              Arrastra tus archivos aquí o
+            </p>
+            <label className="inline-block">
+              <input
+                type="file"
+                multiple
+                onChange={handleFileSelect}
+                className="hidden"
+                accept=".pdf,.xlsx,.xls,.xml,.zip,.doc,.docx"
+              />
+              <span className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors inline-block">
+                Seleccionar archivos
+              </span>
+            </label>
+            <p className="text-sm text-gray-500 mt-3">
+              PDF, Excel, XML, Word, ZIP y otros formatos
+            </p>
+          </div>
+
+          {/* Lista de archivos */}
+          {archivos.length > 0 && (
+            <div className="mt-6 space-y-2">
+              {archivos.map((archivo) => (
+                <div
+                  key={archivo.id}
+                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
+                >
+                  <FileText className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {archivo.file.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {formatFileSize(archivo.file.size)}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => eliminarArchivo(archivo.id)}
+                    className="p-1 hover:bg-red-100 rounded text-red-600 transition-colors"
+                    disabled={subiendo}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Notas */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Notas (opcional)
+          </label>
+          <textarea
+            value={notas}
+            onChange={(e) => setNotas(e.target.value)}
+            placeholder="Agrega algún comentario o nota sobre los documentos..."
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            rows={3}
+            disabled={subiendo}
+          />
+        </div>
+
         {/* Error Message */}
         {resultado && !resultado.success && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <p className="text-red-700">{resultado.mensaje}</p>
+            <p className="text-sm text-red-800">{resultado.mensaje}</p>
           </div>
         )}
 
-        {/* Upload Area */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="p-6">
-            <div
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-                dragActive
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CloudUpload className={`w-8 h-8 ${dragActive ? 'text-blue-600' : 'text-gray-400'}`} />
-              </div>
-              <p className="text-gray-700 mb-2">
-                <strong>Arrastra tus archivos aquí</strong>
-              </p>
-              <p className="text-sm text-gray-500 mb-4">o</p>
-              <label className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors">
-                <FileText size={18} />
-                Seleccionar archivos
-                <input
-                  type="file"
-                  multiple
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-              </label>
-              <p className="text-xs text-gray-400 mt-4">
-                PDF, Excel, XML, Word, ZIP y otros formatos
-              </p>
-            </div>
+        {/* Submit Button */}
+        <button
+          onClick={handleSubmit}
+          disabled={archivos.length === 0 || subiendo}
+          className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+        >
+          {subiendo ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Enviando documentos...
+            </>
+          ) : (
+            <>
+              <Upload className="w-5 h-5" />
+              Enviar Documentos
+            </>
+          )}
+        </button>
 
-            {/* Lista de Archivos */}
-            {archivos.length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-sm font-medium text-gray-700 mb-3">
-                  Archivos seleccionados ({archivos.length})
-                </h3>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {archivos.map(archivo => (
-                    <div
-                      key={archivo.id}
-                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-                    >
-                      <File className="w-5 h-5 text-gray-400" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {archivo.file.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {formatFileSize(archivo.file.size)}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => eliminarArchivo(archivo.id)}
-                        className="p-1 text-gray-400 hover:text-red-600"
-                      >
-                        <X size={18} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Notas */}
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Notas (opcional)
-              </label>
-              <textarea
-                value={notas}
-                onChange={(e) => setNotas(e.target.value)}
-                placeholder="Agrega algún comentario o nota sobre los documentos..."
-                rows={2}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              />
-            </div>
-          </div>
-
-          {/* Submit */}
-          <div className="p-6 bg-gray-50 border-t border-gray-200">
-            <button
-              onClick={handleSubmit}
-              disabled={archivos.length === 0 || subiendo}
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
-            >
-              {subiendo ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Subiendo archivos...
-                </>
-              ) : (
-                <>
-                  <Upload size={20} />
-                  Enviar Documentos
-                </>
-              )}
-            </button>
-            <p className="text-center text-xs text-gray-500 mt-3">
-              Los documentos serán asociados automáticamente al periodo correspondiente
-            </p>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <p className="text-center text-xs text-gray-400 mt-8">
-          Bechapra - Centro de Concentrado de Documentos
+        <p className="text-center text-sm text-gray-500 mt-4">
+          Los documentos serán asociados automáticamente al periodo correspondiente
         </p>
       </div>
     </div>

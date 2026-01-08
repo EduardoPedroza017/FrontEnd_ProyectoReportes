@@ -1,0 +1,41 @@
+/* Ocultar sidebar, header y ajustar layout en rutas de upload */
+
+/* Forzar que el body ocupe todo el espacio */
+body:has(.upload-route) {
+  overflow: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Ocultar sidebar */
+body:has(.upload-route) aside {
+  display: none !important;
+}
+
+/* Ocultar header */
+body:has(.upload-route) header {
+  display: none !important;
+}
+
+/* Ajustar el contenedor principal */
+body:has(.upload-route) .flex.min-h-screen {
+  display: block !important;
+  margin: 0 !important;
+}
+
+/* Ajustar el área de contenido */
+body:has(.upload-route) .flex-1.flex.flex-col {
+  margin-left: 0 !important;
+}
+
+/* Ajustar el main */
+body:has(.upload-route) main {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: none !important;
+}
+
+/* Contenedor max-w */
+body:has(.upload-route) main > div {
+  max-width: none !important;
+}

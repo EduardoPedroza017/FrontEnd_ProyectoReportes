@@ -120,53 +120,14 @@ export default function DetallePeriodoPage() {
     if (!periodo) return
 
     const confirmar = confirm(
-      `¿Generar reporte para ${periodo.plantilla_nombre}?\n\n` +
-      `Periodo: ${periodo.periodo_str}\n` +
-      `Módulos completados: ${periodo.estados_modulos.filter(m => m.estado === 'subido').length}/${periodo.estados_modulos.length}`
+      `¿Procesar archivos de ${periodo.plantilla_nombre}?\n\n` +
+      `Se abrirá Nuevo Reporte con los archivos precargados.`
     )
     
     if (!confirmar) return
 
-    setGenerando(true)
-    console.log('🚀 Iniciando generación de reporte...')
-    
-    try {
-      const url = `http://localhost:8000/api/centro-documentos/periodos/${periodoId}/generar`
-      console.log('📤 POST a:', url)
-      
-      const res = await fetch(url, { method: 'POST' })
-      
-      console.log('📥 Respuesta recibida:', res.status)
-      
-      if (res.ok) {
-        const data = await res.json()
-        console.log('✅ Datos:', data)
-        
-        // Recargar datos
-        await cargarDatos()
-        
-        if (data.reporte_id) {
-          alert(
-            `✅ Reporte generado exitosamente!\n\n` +
-            `ID: ${data.reporte_id}\n` +
-            `Módulos procesados: ${data.modulos_procesados.join(', ')}\n\n` +
-            `El periodo ahora está marcado como "Procesado"`
-          )
-          
-          // Opcional: Redirigir al reporte
-          // router.push(`/reportes/ver?id=${data.reporte_id}`)
-        }
-      } else {
-        const error = await res.json()
-        console.error('❌ Error del servidor:', error)
-        alert(`Error: ${error.detail || 'No se pudo generar el reporte'}`)
-      }
-    } catch (error) {
-      console.error('❌ Error de red:', error)
-      alert('Error de conexión. Verifica que el backend esté corriendo.')
-    } finally {
-      setGenerando(false)
-    }
+    // Redirigir a Nuevo Reporte con el ID del periodo
+    router.push(`/nuevo-reporte?periodo_id=${periodoId}`)
   }
 
   const regenerarTokens = async () => {

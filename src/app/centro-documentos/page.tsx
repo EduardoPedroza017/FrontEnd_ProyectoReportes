@@ -73,8 +73,9 @@ export default function CentroDocumentosPage() {
   const [plantillas, setPlantillas] = useState<Plantilla[]>([])
   const [periodos, setPeriodos] = useState<Periodo[]>([])
   const [stats, setStats] = useState<EstadisticasGenerales | null>(null)
-  const [filtroEstado, setFiltroEstado] = useState<string>('')
+  const [filtroEstado, setFiltroEstado] = useState('')
   const [busqueda, setBusqueda] = useState('')
+  const [generando, setGenerando] = useState<string | null>(null)
 
   useEffect(() => {
     cargarDatos()
@@ -123,6 +124,41 @@ export default function CentroDocumentosPage() {
       setLoading(false)
     }
   }
+
+  const generarReporte = async (periodoId: string) => {
+    console.log('🔴 CLICK DETECTADO en periodo:', periodoId)
+    const confirmar = confirm('¿Generar reporte para este periodo?')
+    if (!confirmar) return
+
+    setGenerando(periodoId)
+    console.log('🚀 Iniciando generación...')
+    
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/centro-documentos/periodos/${periodoId}/generar`,
+        { method: 'POST' }
+      )
+
+      console.log('📥 Status:', res.status)
+
+      if (res.ok) {
+        const data = await res.json()
+        console.log('✅ Reporte generado:', data)
+        alert('✅ Reporte generado exitosamente!')
+        cargarDatos()
+      } else {
+        const error = await res.json()
+        console.error('❌ Error:', error)
+        alert(error.detail || 'Error al generar reporte')
+      }
+    } catch (error) {
+      console.error('❌ Error de red:', error)
+      alert('Error de conexión')
+    } finally {
+      setGenerando(null)
+    }
+  }
+
 
   const periodosFiltrados = periodos.filter(periodo => {
     if (filtroEstado && periodo.estado !== filtroEstado) return false
@@ -412,9 +448,14 @@ export default function CentroDocumentosPage() {
                       <div className="flex items-center gap-2">
                         {periodo.estado === 'completo' && (
                           <button
-                            className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
+                            onClick={() => {
+                              console.log('🔴 BOTÓN CLICKEADO!')
+                              generarReporte(periodo.id)
+                            }}
+                            disabled={generando === periodo.id}
+                            className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
                           >
-                            Generar Reporte
+                            {generando === periodo.id ? 'Generando...' : 'Generar Reporte'}
                           </button>
                         )}
                         <Link

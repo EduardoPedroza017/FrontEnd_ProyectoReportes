@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
+import { useSearchParams } from 'next/navigation'
+import { useToast } from './../../hooks/useToast'
 import {
   FileUp,
   X,
@@ -34,6 +36,8 @@ import { api } from '../../lib/api'
 import Link from 'next/link'
 import router from 'next/dist/shared/lib/router/router'
 import { useRouter } from 'next/navigation'
+
+
 
 // Tipos
 interface FileWithPreview extends File {
@@ -247,6 +251,10 @@ export default function NuevoReportePage() {
   const [expandedModules, setExpandedModules] = useState<number[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
+  const searchParams = useSearchParams()
+  const periodoId = searchParams.get('periodo_id')
+  const { showToast, ToastContainer } = useToast()
+  
 
   const toggleModule = (moduleId: number) => {
     setExpandedModules(prev =>
@@ -255,6 +263,86 @@ export default function NuevoReportePage() {
         : [...prev, moduleId]
     )
   }
+  // ==========================================
+  // CARGAR ARCHIVOS DESDE PERIODO
+  // ==========================================
+  useEffect(() => {
+    if (periodoId) {
+      cargarArchivosDePeriodo(periodoId)
+    }
+  }, [periodoId])
+
+  const cargarArchivosDePeriodo = async (id: string) => {
+    console.log('🔄 Cargando archivos del periodo:', id)
+    setIsProcessing(true)
+    
+    try {
+      const res = await fetch(`http://localhost:8000/api/centro-documentos/periodos/${id}/archivos`)
+      
+      if (!res.ok) {
+        throw new Error('Error al obtener archivos del periodo')
+      }
+      
+      const archivos = await res.json()
+      console.log('📁 Archivos obtenidos:', archivos)
+      
+      if (archivos.length === 0) {
+        showToast('No hay archivos en este periodo', 'warning')  // ✅ Toast
+        setIsProcessing(false)
+        return
+      }
+      
+      // Descargar cada archivo y convertirlo a File
+      let archivosDescargados = 0
+      for (const archivo of archivos) {
+        try {
+          const fileRes = await fetch(`http://localhost:8000/api/centro-documentos/descargar/${archivo.id}`)
+          
+          if (!fileRes.ok) {
+            console.error(`❌ Error descargando ${archivo.nombre_original}`)
+            continue
+          }
+          
+          const blob = await fileRes.blob()
+          const file = new File([blob], archivo.nombre_original, { 
+            type: archivo.tipo_archivo || 'application/octet-stream' 
+          })
+
+          // Crear un FileList válido usando DataTransfer
+          const dataTransfer = new DataTransfer()
+          dataTransfer.items.add(file)
+          const fileList = dataTransfer.files
+
+          const moduloNum = parseInt(archivo.modulo.replace('modulo', ''))
+          console.log(`📥 Cargando ${archivo.nombre_original} en módulo ${moduloNum}`)
+          handleFileChange(moduloNum, archivo.nombre_original, fileList)  // ✅ Ahora usa FileList
+          archivosDescargados++
+          
+        } catch (error) {
+          console.error(`❌ Error procesando ${archivo.nombre_original}:`, error)
+        }
+      }
+      
+      if (archivosDescargados > 0) {
+        showToast(
+          `${archivosDescargados} archivo(s) cargado(s) correctamente.\n\nHaz clic en "Procesar Documentos" para generar el reporte.`,
+          'success'
+        )  // ✅ Toast
+      } else {
+        showToast('No se pudo cargar ningún archivo', 'error')  // ✅ Toast
+      }
+      
+    } catch (error) {
+      console.error('❌ Error cargando archivos:', error)
+      showToast(
+        'Error al cargar archivos del periodo.\nVerifica que el backend esté corriendo.',
+        'error'
+      )  // ✅ Toast
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
 
   const handleFileChange = (moduleId: number, slotId: string, files: FileList | null) => {
     if (!files || files.length === 0) {
@@ -687,6 +775,8 @@ export default function NuevoReportePage() {
     if (!showResults || !processingResults) return null
     
     return (
+      <>
+      <ToastContainer />  {/* ✅ AGREGAR ESTO */}
       <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-xl max-w-4xl w-full max-h-[80vh] overflow-auto p-6">
           <div className="flex items-center justify-between mb-6">
@@ -865,6 +955,7 @@ export default function NuevoReportePage() {
           </div>
         </div>
       </div>
+      </>
     )
   }
 

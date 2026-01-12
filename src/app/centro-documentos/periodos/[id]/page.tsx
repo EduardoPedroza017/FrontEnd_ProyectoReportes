@@ -119,25 +119,51 @@ export default function DetallePeriodoPage() {
   const generarReporte = async () => {
     if (!periodo) return
 
-    setGenerando(true)
-    try {
-      const res = await fetch(
-        `http://localhost:8000/api/centro-documentos/periodos/${periodoId}/generar`,
-        { method: 'POST' }
-      )
+    const confirmar = confirm(
+      `¿Generar reporte para ${periodo.plantilla_nombre}?\n\n` +
+      `Periodo: ${periodo.periodo_str}\n` +
+      `Módulos completados: ${periodo.estados_modulos.filter(m => m.estado === 'subido').length}/${periodo.estados_modulos.length}`
+    )
+    
+    if (!confirmar) return
 
+    setGenerando(true)
+    console.log('🚀 Iniciando generación de reporte...')
+    
+    try {
+      const url = `http://localhost:8000/api/centro-documentos/periodos/${periodoId}/generar`
+      console.log('📤 POST a:', url)
+      
+      const res = await fetch(url, { method: 'POST' })
+      
+      console.log('📥 Respuesta recibida:', res.status)
+      
       if (res.ok) {
         const data = await res.json()
-        cargarDatos()
+        console.log('✅ Datos:', data)
+        
+        // Recargar datos
+        await cargarDatos()
+        
         if (data.reporte_id) {
-          alert('Reporte generado exitosamente')
+          alert(
+            `✅ Reporte generado exitosamente!\n\n` +
+            `ID: ${data.reporte_id}\n` +
+            `Módulos procesados: ${data.modulos_procesados.join(', ')}\n\n` +
+            `El periodo ahora está marcado como "Procesado"`
+          )
+          
+          // Opcional: Redirigir al reporte
+          // router.push(`/reportes/ver?id=${data.reporte_id}`)
         }
       } else {
         const error = await res.json()
-        alert(error.detail || 'Error al generar reporte')
+        console.error('❌ Error del servidor:', error)
+        alert(`Error: ${error.detail || 'No se pudo generar el reporte'}`)
       }
     } catch (error) {
-      console.error('Error:', error)
+      console.error('❌ Error de red:', error)
+      alert('Error de conexión. Verifica que el backend esté corriendo.')
     } finally {
       setGenerando(false)
     }

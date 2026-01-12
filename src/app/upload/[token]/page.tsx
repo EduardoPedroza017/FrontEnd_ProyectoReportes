@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import {
   Upload,
@@ -12,10 +12,7 @@ import {
   Calendar,
   Layers,
   CloudUpload,
-  File,
-  Trash2,
-  AlertTriangle,
-  Clock
+  File
 } from 'lucide-react'
 
 interface TokenInfo {
@@ -28,11 +25,66 @@ interface TokenInfo {
   ya_subido?: boolean
 }
 
-interface ArchivoSubir {
-  file: File
-  id: string
-  progreso: number
-  error?: string
+// Configuración de campos por módulo
+const MODULOS_CAMPOS: Record<string, {
+  fileSlots: Array<{
+    id: string
+    label: string
+    accept: string
+    required: boolean
+  }>
+}> = {
+  'modulo1': {
+    fileSlots: [
+      { id: 'general', label: 'Estados de Cuenta (PDF o Excel)', accept: '.pdf,.xlsx,.xls', required: true }
+    ]
+  },
+  'modulo3': {
+    fileSlots: [
+      { id: 'excel', label: 'Excel con acumulado de facturas', accept: '.xlsx,.xls', required: true },
+      { id: 'emitidos', label: 'ZIP de XMLs Emitidos', accept: '.zip', required: true },
+      { id: 'recibidos', label: 'ZIP de XMLs Recibidos', accept: '.zip', required: true }
+    ]
+  },
+  'modulo4': {
+    fileSlots: [
+      { id: 'cedula', label: 'Cédula de determinación', accept: '.pdf,.xlsx,.xls', required: true },
+      { id: 'resumen', label: 'Resumen', accept: '.pdf,.xlsx,.xls', required: false },
+      { id: 'sipare', label: 'SIPARE', accept: '.pdf', required: false },
+      { id: 'comprobante', label: 'Comprobante de pago', accept: '.pdf', required: false }
+    ]
+  },
+  'modulo5': {
+    fileSlots: [
+      { id: 'excel', label: 'Excel de ISN', accept: '.xlsx,.xls', required: true },
+      { id: 'linea', label: 'Línea de captura', accept: '.pdf', required: true },
+      { id: 'comprobante', label: 'Comprobante de pago', accept: '.pdf', required: false }
+    ]
+  },
+  'modulo6': {
+    fileSlots: [
+      { id: 'excel', label: 'Excel de Nómina', accept: '.xlsx,.xls', required: true },
+      { id: 'incidencias', label: 'Excel de Incidencias', accept: '.xlsx,.xls', required: false },
+      { id: 'cfdi_pdfs', label: 'PDFs de Recibos (ZIP)', accept: '.zip', required: false },
+      { id: 'cfdi_xmls', label: 'XMLs de Recibos (ZIP)', accept: '.zip', required: false }
+    ]
+  },
+  'modulo7': {
+    fileSlots: [
+      { id: 'general', label: 'Documentos FONACOT', accept: '.pdf,.xlsx,.xls', required: true }
+    ]
+  },
+  'modulo8': {
+    fileSlots: [
+      { id: 'excel', label: 'Excel de Pagos Provisionales', accept: '.xlsx,.xls', required: true },
+      { id: 'pdfs', label: 'PDFs de Declaraciones (ZIP)', accept: '.zip', required: false }
+    ]
+  },
+  'modulo11': {
+    fileSlots: [
+      { id: 'excel', label: 'Excel de Estados Financieros', accept: '.xlsx,.xls', required: true }
+    ]
+  }
 }
 
 export default function UploadPublicoPage() {
@@ -41,14 +93,13 @@ export default function UploadPublicoPage() {
 
   const [loading, setLoading] = useState(true)
   const [tokenInfo, setTokenInfo] = useState<TokenInfo | null>(null)
-  const [archivos, setArchivos] = useState<ArchivoSubir[]>([])
+  const [archivos, setArchivos] = useState<Record<string, File | null>>({})
   const [subiendo, setSubiendo] = useState(false)
   const [notas, setNotas] = useState('')
   const [resultado, setResultado] = useState<{
     success: boolean
     mensaje: string
   } | null>(null)
-  const [dragActive, setDragActive] = useState(false)
 
   useEffect(() => {
     validarToken()
@@ -57,7 +108,6 @@ export default function UploadPublicoPage() {
   const validarToken = async () => {
     setLoading(true)
     try {
-      // ✅ CORREGIDO: Usa /api en lugar de http://localhost:8000
       const res = await fetch(
         `/api/centro-documentos/periodos/upload/${token}`
       )
@@ -73,61 +123,26 @@ export default function UploadPublicoPage() {
     }
   }
 
-  const handleDrag = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true)
-    } else if (e.type === 'dragleave') {
-      setDragActive(false)
-    }
-  }, [])
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-
-    const files = Array.from(e.dataTransfer.files)
-    agregarArchivos(files)
-  }, [])
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files)
-      agregarArchivos(files)
-    }
-  }
-
-  const agregarArchivos = (files: File[]) => {
-    const nuevosArchivos: ArchivoSubir[] = files.map(file => ({
-      file,
-      id: `${file.name}-${Date.now()}-${Math.random()}`,
-      progreso: 0
-    }))
-    setArchivos(prev => [...prev, ...nuevosArchivos])
-  }
-
-  const eliminarArchivo = (id: string) => {
-    setArchivos(prev => prev.filter(a => a.id !== id))
-  }
-
   const handleSubmit = async () => {
-    if (archivos.length === 0) return
+    const archivosArray = Object.values(archivos).filter(f => f !== null) as File[]
+    
+    if (archivosArray.length === 0) {
+      alert('Por favor selecciona al menos un archivo')
+      return
+    }
 
     setSubiendo(true)
     setResultado(null)
 
     try {
       const formData = new FormData()
-      archivos.forEach(archivo => {
-        formData.append('files', archivo.file)
+      archivosArray.forEach(archivo => {
+        formData.append('files', archivo)
       })
       if (notas.trim()) {
         formData.append('notas', notas.trim())
       }
 
-      // ✅ CORREGIDO: Usa /api en lugar de http://localhost:8000
       const res = await fetch(
         `/api/centro-documentos/periodos/upload/${token}`,
         {
@@ -143,9 +158,8 @@ export default function UploadPublicoPage() {
           success: true,
           mensaje: data.mensaje || 'Archivos subidos exitosamente'
         })
-        setArchivos([])
+        setArchivos({})
         setNotas('')
-        // Revalidar token (ya estará usado)
         validarToken()
       } else {
         setResultado({
@@ -161,12 +175,6 @@ export default function UploadPublicoPage() {
     } finally {
       setSubiendo(false)
     }
-  }
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
   // Loading State
@@ -209,7 +217,7 @@ export default function UploadPublicoPage() {
     )
   }
 
-  // Success State (después de subir)
+  // Success State
   if (resultado?.success) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center p-4">
@@ -236,10 +244,33 @@ export default function UploadPublicoPage() {
     )
   }
 
+  // Detectar módulo desde tokenInfo
+  // Detectar módulo desde tokenInfo usando palabras clave
+  const detectarModulo = (nombreModulo: string | undefined): string | null => {
+    if (!nombreModulo) return null
+    
+    const nombreLower = nombreModulo.toLowerCase()
+    
+    // Mapeo de palabras clave a módulos
+    if (nombreLower.includes('xml') || nombreLower.includes('factura')) return 'modulo3'
+    if (nombreLower.includes('estado') && nombreLower.includes('cuenta')) return 'modulo1'
+    if (nombreLower.includes('sua')) return 'modulo4'
+    if (nombreLower.includes('isn') || nombreLower.includes('nómina')) return 'modulo5'
+    if (nombreLower.includes('nómina') || nombreLower.includes('nomina')) return 'modulo6'
+    if (nombreLower.includes('fonacot')) return 'modulo7'
+    if (nombreLower.includes('control') && nombreLower.includes('fiscal')) return 'modulo8'
+    if (nombreLower.includes('estado') && nombreLower.includes('financiero')) return 'modulo11'
+    
+    return null
+  }
+
+  const moduloClave = detectarModulo(tokenInfo.modulo_nombre)
+  const configuracion = moduloClave ? MODULOS_CAMPOS[moduloClave] : null
+
   // Upload Form
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* Logo / Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
@@ -290,98 +321,110 @@ export default function UploadPublicoPage() {
           )}
         </div>
 
-        {/* Upload Area */}
+        {/* Upload Areas por Módulo */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div
-            className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-              dragActive
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-300 hover:border-gray-400'
-            }`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-            <CloudUpload className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-700 font-medium mb-2">
-              Arrastra tus archivos aquí o
-            </p>
-            <label className="inline-block">
+          <h3 className="font-semibold text-gray-900 mb-4">Documentos Requeridos</h3>
+          
+          {configuracion ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {configuracion.fileSlots.map((slot) => (
+                <div key={slot.id} className="space-y-2">
+                  <label className="text-sm font-medium text-gray-900">
+                    {slot.label}
+                    {slot.required && <span className="text-red-600 ml-1">*</span>}
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 transition-colors">
+                    <input
+                      type="file"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null
+                        setArchivos(prev => ({...prev, [slot.id]: file}))
+                      }}
+                      className="hidden"
+                      id={`file-input-${slot.id}`}
+                      accept={slot.accept}
+                    />
+                    <label htmlFor={`file-input-${slot.id}`} className="cursor-pointer block">
+                      {archivos[slot.id] ? (
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <File className="w-5 h-5 text-green-600 flex-shrink-0" />
+                            <span className="text-sm text-gray-900 truncate">
+                              {archivos[slot.id]?.name}
+                            </span>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault()
+                              setArchivos(prev => ({...prev, [slot.id]: null}))
+                            }}
+                            className="p-1 hover:bg-red-100 rounded text-red-600"
+                            type="button"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <CloudUpload className="w-8 h-8 text-gray-400 mx-auto" />
+                          <p className="text-sm text-gray-600">Click para seleccionar</p>
+                          <p className="text-xs text-gray-400">{slot.accept}</p>
+                        </div>
+                      )}
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="border-2 border-dashed rounded-xl p-8 text-center">
+              <CloudUpload className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <input
                 type="file"
                 multiple
-                onChange={handleFileSelect}
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || [])
+                  const newArchivos: Record<string, File> = {}
+                  files.forEach((file, idx) => {
+                    newArchivos[`file_${idx}`] = file
+                  })
+                  setArchivos(newArchivos)
+                }}
                 className="hidden"
-                accept=".pdf,.xlsx,.xls,.xml,.zip,.doc,.docx"
+                id="file-input-generic"
+                accept=".pdf,.xlsx,.xls,.xml,.zip"
               />
-              <span className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors inline-block">
-                Seleccionar archivos
-              </span>
-            </label>
-            <p className="text-sm text-gray-500 mt-3">
-              PDF, Excel, XML, Word, ZIP y otros formatos
-            </p>
-          </div>
-
-          {/* Lista de archivos */}
-          {archivos.length > 0 && (
-            <div className="mt-6 space-y-2">
-              {archivos.map((archivo) => (
-                <div
-                  key={archivo.id}
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
-                >
-                  <FileText className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {archivo.file.name}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {formatFileSize(archivo.file.size)}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => eliminarArchivo(archivo.id)}
-                    className="p-1 hover:bg-red-100 rounded text-red-600 transition-colors"
-                    disabled={subiendo}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
+              <label htmlFor="file-input-generic" className="cursor-pointer">
+                <span className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-block">
+                  Seleccionar archivos
+                </span>
+              </label>
+              <p className="text-sm text-gray-500 mt-3">
+                PDF, Excel, XML, Word, ZIP y otros formatos
+              </p>
             </div>
           )}
         </div>
 
         {/* Notas */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-900 mb-2">
             Notas (opcional)
           </label>
           <textarea
             value={notas}
             onChange={(e) => setNotas(e.target.value)}
             placeholder="Agrega algún comentario o nota sobre los documentos..."
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             rows={3}
-            disabled={subiendo}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-
-        {/* Error Message */}
-        {resultado && !resultado.success && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-red-800">{resultado.mensaje}</p>
-          </div>
-        )}
 
         {/* Submit Button */}
         <button
           onClick={handleSubmit}
-          disabled={archivos.length === 0 || subiendo}
-          className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+          disabled={subiendo || Object.values(archivos).filter(f => f !== null).length === 0}
+          className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {subiendo ? (
             <>

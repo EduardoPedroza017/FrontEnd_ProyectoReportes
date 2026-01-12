@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense} from 'react'
 import { useSearchParams } from 'next/navigation'
 import { ArrowLeft, Download, FileText, Building2, Users, CreditCard, ArrowLeftRight } from 'lucide-react'
 import { DollarSign } from 'lucide-react'
@@ -17,7 +17,7 @@ import Modulo11 from './components/Modulo11'
 import { ReporteData } from './components/types'
 
 
-export default function VerReportePage() {
+function VerReporteContent() {
   const searchParams = useSearchParams()
   const reporteId = searchParams.get('id')
   
@@ -555,5 +555,22 @@ export default function VerReportePage() {
         </div>
       )}
     </div>
+  )
+  
+}
+
+// Componente principal que envuelve en Suspense
+export default function VerReportePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-bechapra-light-3 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-bechapra-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-bechapra-text-secondary">Cargando reporte...</p>
+        </div>
+      </div>
+    }>
+      <VerReporteContent />
+    </Suspense>
   )
 }

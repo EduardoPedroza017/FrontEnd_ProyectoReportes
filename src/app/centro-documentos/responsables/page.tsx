@@ -301,16 +301,20 @@ export default function ResponsablesPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    {resp.recibe_notificaciones ? (
-                      <Bell size={14} className="text-green-500" title="Recibe notificaciones" />
-                    ) : (
-                      <BellOff size={14} className="text-gray-400" title="No recibe notificaciones" />
-                    )}
-                    {resp.activo ? (
-                      <CheckCircle size={14} className="text-green-500" title="Activo" />
-                    ) : (
-                      <XCircle size={14} className="text-red-500" title="Inactivo" />
-                    )}
+                    <div title="Recibe notificaciones">
+                      {resp.recibe_notificaciones ? (
+                        <Bell size={14} className="text-green-500" />
+                      ) : (
+                        <BellOff size={14} className="text-gray-400" />
+                      )}
+                    </div>
+                    <div title={resp.activo ? "Activo" : "Inactivo"}>
+                      {resp.activo ? (
+                        <CheckCircle size={14} className="text-green-500" />
+                      ) : (
+                        <XCircle size={14} className="text-red-500" />
+                      )}
+                    </div>
                   </div>
                 </div>
 

@@ -53,6 +53,7 @@ interface ModuleData {
   acceptedTypes: string[]
   fileSlots: FileSlot[]
   files: FileWithPreview[]
+  isDynamic?: boolean 
 }
 
 interface FileSlot {
@@ -246,7 +247,8 @@ export default function NuevoReportePage() {
         id: `zip_${i}`,
         label: `ZIP Periodo ${i + 1}${tipo === 'mensual' ? '' : ` (${tipo === 'semanal' ? `Semana ${i + 1}` : `Quincena ${i + 1}`})`}`,
         accept: ['.zip'],
-        required: true
+        required: true, 
+        options: []
       })
     }
 
@@ -594,7 +596,6 @@ export default function NuevoReportePage() {
 
             case 6:
               // Módulo 06: Nómina (ZIPs estructurados)
-              // Usar el tipo de nómina del estado
               const tipoNomina = tipoNominaSeleccionado || 'mensual'
 
               // Recolectar todos los ZIPs
@@ -603,22 +604,53 @@ export default function NuevoReportePage() {
 
               for (const zipSlot of zipSlots) {
                 if (zipSlot.file) {
-                  archivosZip.push(zipSlot.file as File)
+                  // Manejar tanto archivos únicos como arrays
+                  if (Array.isArray(zipSlot.file)) {
+                    archivosZip.push(...zipSlot.file)  // ✅ Spread para arrays
+                  } else {
+                    archivosZip.push(zipSlot.file)  // ✅ Push directo para archivo único
+                  }
                 }
               }
 
-              if (archivosZip.length > 0) {
-                console.log('👥 Procesando Módulo 06: Nómina')
-                console.log(`📦 Tipo: ${tipoNomina}, ZIPs: ${archivosZip.length}`)
+              // Validar que tengamos archivos antes de procesar
+              if (archivosZip.length === 0) {
+                console.warn('⚠️ Módulo 6: No se encontraron archivos ZIP')
+                break
+              }
 
+              // Validar que todos sean archivos File válidos
+              const todosValidos = archivosZip.every(zip => zip instanceof File && zip.name.endsWith('.zip'))
+              if (!todosValidos) {
+                console.error('❌ Módulo 6: Algunos archivos no son ZIPs válidos')
+                break
+              }
+
+              // Validar cantidad según tipo
+              const zipEsperados = tipoNomina === 'mensual' ? 1 : tipoNomina === 'quincenal' ? 2 : 4
+              if (archivosZip.length !== zipEsperados) {
+                console.warn(`⚠️ Módulo 6: Se esperan ${zipEsperados} ZIPs para ${tipoNomina}, se encontraron ${archivosZip.length}`)
+                // Puedes decidir si continuar o romper aquí
+              }
+
+              console.log('👥 Procesando Módulo 06: Nómina')
+              console.log(`📦 Tipo: ${tipoNomina}, ZIPs: ${archivosZip.length}`)
+              
+              // Debug: mostrar detalles de cada ZIP
+              archivosZip.forEach((zip, idx) => {
+                console.log(`  📁 ZIP ${idx + 1}: ${zip.name} (${(zip.size / 1024 / 1024).toFixed(2)} MB)`)
+              })
+
+              try {
                 const modulo6Data = await api.uploadNomina({
                   tipo: tipoNomina,
                   zips: archivosZip
                 })
                 results.modulo6 = modulo6Data
                 console.log('✅ Módulo 6 completado:', modulo6Data)
-              } else {
-                console.warn('⚠️ Módulo 6: Faltan archivos ZIP')
+              } catch (error: any) {
+                console.error('❌ Error en Módulo 6:', error.message)
+                throw error  // Re-lanzar para que se maneje en el catch principal
               }
               break
 

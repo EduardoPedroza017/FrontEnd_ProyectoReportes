@@ -351,13 +351,118 @@ export interface Modulo05Data {
 export interface Modulo6Data {
   success: boolean
   tipo_nomina: 'semanal' | 'quincenal' | 'mensual'
-  dashboard: DashboardNomina
+  num_periodos: number
+  periodos: Modulo6PeriodoData[]
+  resumen_global: ResumenGlobalNomina
+  // Legacy fields for backward compatibility (single period)
+  periodo?: PeriodoNomina
+  empresa?: EmpresaNomina
+  dashboard?: DashboardNomina
+  resumen?: ResumenNomina
+  empleados?: EmpleadoNomina[]
+  calculos?: CalculosNomina
+  percepciones_detalle?: { [codigo: string]: ConceptoDetalle }
+  deducciones_detalle?: { [codigo: string]: ConceptoDetalle }
+  provisiones_patronales?: { [codigo: string]: ProvisionDetalle }
+  incidencias?: IncidenciasNomina
+  cfdi?: CFDINomina
+  dispersion?: DispersionNomina
+  historico?: HistoricoNomina
+  validaciones?: ValidacionNomina[]
+  alertas?: AlertaNomina[]
+}
+
+// Datos de un periodo individual
+export interface Modulo6PeriodoData {
+  success: boolean
+  tipo_nomina: 'semanal' | 'quincenal' | 'mensual'
+  periodo: PeriodoNomina
+  empresa: EmpresaNomina
+  dashboard?: DashboardNomina
+  resumen: ResumenNomina
   empleados: EmpleadoNomina[]
-  calculos: CalculosNomina
-  incidencias: IncidenciasNomina
-  cfdi: CFDINomina
-  dispersion: DispersionNomina
-  historico: HistoricoNomina
+  calculos?: CalculosNomina
+  percepciones_detalle: { [codigo: string]: ConceptoDetalle }
+  deducciones_detalle: { [codigo: string]: ConceptoDetalle }
+  provisiones_patronales: { [codigo: string]: ProvisionDetalle }
+  incidencias?: IncidenciasNomina
+  cfdi?: CFDINomina
+  dispersion?: DispersionNomina
+  historico?: HistoricoNomina
+  validaciones: ValidacionNomina[]
+  alertas: AlertaNomina[]
+}
+
+// Resumen global de todos los periodos
+export interface ResumenGlobalNomina {
+  total_percepciones: number
+  total_deducciones: number
+  total_neto: number
+  carga_patronal: CargaPatronal
+  costo_total_nomina: number
+}
+
+// Periodo
+export interface PeriodoNomina {
+  tipo: 'semanal' | 'quincenal' | 'mensual'
+  numero?: number
+  descripcion: string
+  fecha_inicio?: string
+  fecha_fin?: string
+  archivo_zip?: string
+}
+
+// Empresa
+export interface EmpresaNomina {
+  nombre: string
+  rfc: string
+  registro_patronal?: string
+}
+
+// Resumen
+export interface ResumenNomina {
+  num_empleados: number
+  total_percepciones: number
+  total_deducciones: number
+  total_neto: number
+  promedio_neto: number
+  isr_retenido: number
+  imss_obrero: number
+  infonavit_empleados: number
+  fonacot_empleados: number
+  carga_patronal: CargaPatronal
+}
+
+// Carga Patronal
+export interface CargaPatronal {
+  imss_patronal: number
+  sar: number
+  infonavit_patronal: number
+  isn: number
+  total: number
+}
+
+// Concepto Detalle (Percepciones/Deducciones)
+export interface ConceptoDetalle {
+  codigo: number
+  nombre: string
+  total: number
+  empleados: number
+}
+
+// Provisión Detalle
+export interface ProvisionDetalle {
+  codigo: number
+  nombre: string
+  categoria: string
+  total: number
+}
+
+// Validación
+export interface ValidacionNomina {
+  tipo: 'ok' | 'warning' | 'error'
+  categoria: string
+  mensaje: string
 }
 
 // Dashboard - KPIs principales

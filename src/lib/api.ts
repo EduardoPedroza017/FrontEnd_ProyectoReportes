@@ -70,9 +70,11 @@ export const api = {
     return await response.json()
   },
 
-  // Módulo 06: Nómina
+  // Módulo 06: Nómina (ZIPs estructurados)
   uploadNomina: async (files: {
     tipo: string
+    zips?: File[]
+    // Legacy fields para backward compatibility
     excel?: File
     incidencias?: File
     cfdi_pdfs?: File[]
@@ -81,26 +83,33 @@ export const api = {
   }) => {
     const formData = new FormData()
     formData.append('tipo', files.tipo)
-    
-    if (files.excel) formData.append('excel', files.excel)
-    if (files.incidencias) formData.append('incidencias', files.incidencias)
-    
-    // Archivos múltiples
-    if (files.cfdi_pdfs) {
-      files.cfdi_pdfs.forEach(file => formData.append('cfdi_pdfs', file))
+
+    // Nuevo formato: ZIPs estructurados
+    if (files.zips && files.zips.length > 0) {
+      files.zips.forEach(zip => formData.append('archivos_zip', zip))
     }
-    if (files.cfdi_xmls) {
-      files.cfdi_xmls.forEach(file => formData.append('cfdi_xmls', file))
+    // Legacy format: archivos separados
+    else {
+      if (files.excel) formData.append('excel', files.excel)
+      if (files.incidencias) formData.append('incidencias', files.incidencias)
+
+      // Archivos múltiples
+      if (files.cfdi_pdfs) {
+        files.cfdi_pdfs.forEach(file => formData.append('cfdi_pdfs', file))
+      }
+      if (files.cfdi_xmls) {
+        files.cfdi_xmls.forEach(file => formData.append('cfdi_xmls', file))
+      }
+      if (files.comprobantes) {
+        files.comprobantes.forEach(file => formData.append('comprobantes', file))
+      }
     }
-    if (files.comprobantes) {
-      files.comprobantes.forEach(file => formData.append('comprobantes', file))
-    }
-    
+
     const response = await fetch(`${API_BASE_URL}/api/nomina/upload`, {
       method: 'POST',
       body: formData
     })
-    
+
     if (!response.ok) throw new Error('Error al procesar nómina')
     return await response.json()
   },

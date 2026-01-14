@@ -136,47 +136,19 @@ const initialModules: ModuleData[] = [
   subtitle: 'Gestión de nómina y dispersión',
   icon: Users,
   status: 'ready',
-  acceptedTypes: ['.xlsx', '.xls', '.zip'],
+  acceptedTypes: ['.zip'],
   fileSlots: [
-    { 
-      id: 'tipo', 
-      label: 'Tipo de nómina', 
-      accept: ['select'], 
+    {
+      id: 'tipo',
+      label: 'Tipo de nómina',
+      accept: ['select'],
       required: true,
-      options: ['semanal', 'quincenal', 'mensual']
+      options: ['mensual', 'quincenal', 'semanal']
     },
-    { 
-      id: 'excel', 
-      label: 'Excel de nómina', 
-      accept: ['.xlsx', '.xls'], 
-      required: true 
-    },
-    { 
-      id: 'incidencias', 
-      label: 'Excel de incidencias (Opcional)', 
-      accept: ['.xlsx', '.xls'], 
-      required: false 
-    },
-    { 
-      id: 'cfdi_pdfs', 
-      label: 'ZIP de CFDI PDFs (Opcional)', 
-      accept: ['.zip'], 
-      required: false 
-    },
-    { 
-      id: 'cfdi_xmls', 
-      label: 'ZIP de CFDI XMLs (Opcional)', 
-      accept: ['.zip'], 
-      required: false 
-    },
-    { 
-      id: 'comprobantes', 
-      label: 'ZIP de comprobantes (Opcional)', 
-      accept: ['.zip'], 
-      required: false 
-    },
+    // Los slots de ZIP se generan dinámicamente según el tipo
   ],
-  files: []
+  files: [],
+  isDynamic: true // Flag para indicar que este módulo genera campos dinámicamente
 },
   {
     id: 7,
@@ -246,15 +218,40 @@ const initialModules: ModuleData[] = [
 ]
 
 export default function NuevoReportePage() {
-  const router = useRouter() 
+  const router = useRouter()
   const [modules, setModules] = useState<ModuleData[]>(initialModules)
   const [expandedModules, setExpandedModules] = useState<number[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
+  const [tipoNominaSeleccionado, setTipoNominaSeleccionado] = useState<string>('')
   const searchParams = useSearchParams()
   const periodoId = searchParams.get('periodo_id')
   const { showToast, ToastContainer } = useToast()
-  
+
+  // Generar slots dinámicos para módulo 06 según tipo de nómina
+  const generarSlotsNomina = (tipo: string) => {
+    const numZips = tipo === 'mensual' ? 1 : tipo === 'quincenal' ? 2 : 4
+    const slots = [
+      {
+        id: 'tipo',
+        label: 'Tipo de nómina',
+        accept: ['select'],
+        required: true,
+        options: ['mensual', 'quincenal', 'semanal']
+      }
+    ]
+
+    for (let i = 0; i < numZips; i++) {
+      slots.push({
+        id: `zip_${i}`,
+        label: `ZIP Periodo ${i + 1}${tipo === 'mensual' ? '' : ` (${tipo === 'semanal' ? `Semana ${i + 1}` : `Quincena ${i + 1}`})`}`,
+        accept: ['.zip'],
+        required: true
+      })
+    }
+
+    return slots
+  }
 
   const toggleModule = (moduleId: number) => {
     setExpandedModules(prev =>
@@ -596,42 +593,32 @@ export default function NuevoReportePage() {
             break
 
             case 6:
-              // Módulo 06: Nómina
-              const tipoNominaSlot = module.fileSlots.find(s => s.id === 'tipo')
-              const excelNominaSlot = module.fileSlots.find(s => s.id === 'excel')
-              const incidenciasNominaSlot = module.fileSlots.find(s => s.id === 'incidencias')
-              const cfdiPdfsNominaSlot = module.fileSlots.find(s => s.id === 'cfdi_pdfs')
-              const cfdiXmlsNominaSlot = module.fileSlots.find(s => s.id === 'cfdi_xmls')
-              const comprobantesNominaSlot = module.fileSlots.find(s => s.id === 'comprobantes')
-              
-              // Determinar tipo de nómina
-              let tipoNomina = 'mensual'
-              if (tipoNominaSlot && tipoNominaSlot.file) {
-                const tipoFile = tipoNominaSlot.file as File
-                const tipoText = await tipoFile.text()
-                tipoNomina = tipoText.trim().toLowerCase()
+              // Módulo 06: Nómina (ZIPs estructurados)
+              // Usar el tipo de nómina del estado
+              const tipoNomina = tipoNominaSeleccionado || 'mensual'
+
+              // Recolectar todos los ZIPs
+              const zipSlots = module.fileSlots.filter(s => s.id.startsWith('zip_'))
+              const archivosZip: File[] = []
+
+              for (const zipSlot of zipSlots) {
+                if (zipSlot.file) {
+                  archivosZip.push(zipSlot.file as File)
+                }
               }
-              
-              if (excelNominaSlot && excelNominaSlot.file) {
-                const excel = excelNominaSlot.file as File
-                const incidencias = incidenciasNominaSlot && incidenciasNominaSlot.file ? incidenciasNominaSlot.file as File : undefined
-                const cfdi_pdfs = cfdiPdfsNominaSlot && Array.isArray(cfdiPdfsNominaSlot.file) ? cfdiPdfsNominaSlot.file as File[] : undefined
-                const cfdi_xmls = cfdiXmlsNominaSlot && Array.isArray(cfdiXmlsNominaSlot.file) ? cfdiXmlsNominaSlot.file as File[] : undefined
-                const comprobantes = comprobantesNominaSlot && Array.isArray(comprobantesNominaSlot.file) ? comprobantesNominaSlot.file as File[] : undefined
-                
+
+              if (archivosZip.length > 0) {
                 console.log('👥 Procesando Módulo 06: Nómina')
+                console.log(`📦 Tipo: ${tipoNomina}, ZIPs: ${archivosZip.length}`)
+
                 const modulo6Data = await api.uploadNomina({
                   tipo: tipoNomina,
-                  excel,
-                  incidencias,
-                  cfdi_pdfs,
-                  cfdi_xmls,
-                  comprobantes
+                  zips: archivosZip
                 })
                 results.modulo6 = modulo6Data
                 console.log('✅ Módulo 6 completado:', modulo6Data)
               } else {
-                console.warn('⚠️ Módulo 6: Falta el archivo Excel de nómina')
+                console.warn('⚠️ Módulo 6: Faltan archivos ZIP')
               }
               break
 
@@ -1177,8 +1164,97 @@ export default function NuevoReportePage() {
               >
                 <div className="p-5 pt-0 border-t border-bechapra-border-light">
                   <div className="pt-5 space-y-4">
-                    {mod.fileSlots.length > 0 ? (
-                      // Módulos con slots específicos
+                    {/* Módulo 06 - Nómina (Especial) */}
+                    {mod.id === 6 ? (
+                      <div className="space-y-6">
+                        {/* Selector de Tipo de Nómina */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-bechapra-text-primary">
+                            Tipo de nómina <span className="text-xs text-bechapra-error">*</span>
+                          </label>
+                          <select
+                            value={tipoNominaSeleccionado}
+                            onChange={(e) => {
+                              const nuevoTipo = e.target.value
+                              setTipoNominaSeleccionado(nuevoTipo)
+
+                              // Regenerar slots según el tipo
+                              if (nuevoTipo) {
+                                setModules(prev => prev.map(m => {
+                                  if (m.id === 6) {
+                                    return {
+                                      ...m,
+                                      fileSlots: generarSlotsNomina(nuevoTipo)
+                                    }
+                                  }
+                                  return m
+                                }))
+                              }
+                            }}
+                            className="w-full px-4 py-3 border-2 border-bechapra-border rounded-bechapra focus:border-bechapra-primary focus:outline-none text-lg"
+                          >
+                            <option value="">Selecciona el tipo de nómina...</option>
+                            <option value="mensual">Mensual (1 ZIP)</option>
+                            <option value="quincenal">Quincenal (2 ZIPs)</option>
+                            <option value="semanal">Semanal (4 ZIPs)</option>
+                          </select>
+                        </div>
+
+                        {/* Campos de ZIP dinámicos */}
+                        {tipoNominaSeleccionado && (
+                          <>
+                            {/* Instrucciones */}
+                            <div className="bg-blue-50 border border-blue-200 rounded-bechapra p-4">
+                              <div className="flex items-start gap-3">
+                                <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                                <div className="text-sm text-blue-900">
+                                  <p className="font-semibold mb-2">Estructura de cada ZIP:</p>
+                                  <ul className="space-y-1 text-xs">
+                                    <li>• Excel_Nomina.xlsx (raíz)</li>
+                                    <li>• Carpeta CFDIS/ con PDFs y subcarpeta XMLs/</li>
+                                    <li>• Carpeta Comprobantes/ con PDFs</li>
+                                    <li>• Carpeta Incidencias/ con Excel (opcional)</li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Grid de ZIPs */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {mod.fileSlots.filter(slot => slot.id !== 'tipo').map((slot) => (
+                                <div key={slot.id} className="space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <label className="text-sm font-medium text-bechapra-text-primary">
+                                      {slot.label}
+                                    </label>
+                                    {slot.required && (
+                                      <span className="text-xs text-bechapra-error">*</span>
+                                    )}
+                                  </div>
+                                  <UploadArea
+                                    key={`upload-${mod.id}-${slot.id}-${slot.file ? Date.now() : 'empty'}`}
+                                    moduleId={mod.id}
+                                    slotId={slot.id}
+                                    label={slot.label}
+                                    accept={slot.accept}
+                                    multiple={slot.multiple}
+                                    currentFile={slot.file}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        )}
+
+                        {!tipoNominaSeleccionado && (
+                          <div className="text-center py-8 text-bechapra-text-muted">
+                            <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                            <p>Primero selecciona el tipo de nómina</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : mod.fileSlots.length > 0 ? (
+                      // Otros módulos con slots específicos
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {mod.fileSlots.map((slot) => (
                           <div key={slot.id} className="space-y-2">

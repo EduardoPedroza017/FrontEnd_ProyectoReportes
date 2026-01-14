@@ -266,7 +266,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <DollarSign className="w-8 h-8 opacity-80" />
                   <div className="text-right">
                     <div className="text-xs opacity-80 uppercase tracking-wide">Nómina Total</div>
-                    <div className="text-2xl font-bold">{formatCurrency(periodoActual.dashboard.nomina_total)}</div>
+                    <div className="text-2xl font-bold">{formatCurrency(data.dashboard.nomina_total)}</div>
                   </div>
                 </div>
                 <div className="text-xs opacity-90">Tipo: {tipoNominaLabel}</div>
@@ -278,10 +278,10 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <Users className="w-8 h-8 opacity-80" />
                   <div className="text-right">
                     <div className="text-xs opacity-80 uppercase tracking-wide">Empleados</div>
-                    <div className="text-2xl font-bold">{formatNumber(periodoActual.dashboard.num_empleados)}</div>
+                    <div className="text-2xl font-bold">{formatNumber(data.dashboard.num_empleados)}</div>
                   </div>
                 </div>
-                <div className="text-xs opacity-90">Periodo: {periodoActual.dashboard.periodo}</div>
+                <div className="text-xs opacity-90">Periodo: {data.dashboard.periodo}</div>
               </div>
 
               {/* Promedio por Empleado */}
@@ -290,7 +290,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <Calculator className="w-8 h-8 opacity-80" />
                   <div className="text-right">
                     <div className="text-xs opacity-80 uppercase tracking-wide">Promedio</div>
-                    <div className="text-2xl font-bold">{formatCurrency(periodoActual.dashboard.promedio_empleado)}</div>
+                    <div className="text-2xl font-bold">{formatCurrency(data.dashboard.promedio_empleado)}</div>
                   </div>
                 </div>
                 <div className="text-xs opacity-90">Por empleado</div>
@@ -299,32 +299,32 @@ export default function Modulo06({ data }: Modulo06Props) {
               {/* Estado de Pago */}
               <div
                 className={`rounded-lg p-6 text-white ${
-                  periodoActual.dashboard.estado_pago === 'PAGADO'
+                  data.dashboard.estado_pago === 'PAGADO'
                     ? 'bg-gradient-to-br from-green-500 to-green-600'
-                    : periodoActual.dashboard.estado_pago === 'PARCIAL'
+                    : data.dashboard.estado_pago === 'PARCIAL'
                     ? 'bg-gradient-to-br from-yellow-500 to-yellow-600'
                     : 'bg-gradient-to-br from-gray-500 to-gray-600'
                 }`}
               >
                 <div className="flex items-center justify-between mb-3">
-                  {periodoActual.dashboard.estado_pago === 'PAGADO' ? (
+                  {data.dashboard.estado_pago === 'PAGADO' ? (
                     <CheckCircle2 className="w-8 h-8 opacity-80" />
                   ) : (
                     <Clock className="w-8 h-8 opacity-80" />
                   )}
                   <div className="text-right">
                     <div className="text-xs opacity-80 uppercase tracking-wide">Estado</div>
-                    <div className="text-2xl font-bold">{periodoActual.dashboard.estado_pago}</div>
+                    <div className="text-2xl font-bold">{data.dashboard.estado_pago}</div>
                   </div>
                 </div>
                 <div className="text-xs opacity-90">
-                  {periodoActual.dashboard.fecha_pago ? `Fecha: ${periodoActual.dashboard.fecha_pago}` : 'Sin fecha'}
+                  {data.dashboard.fecha_pago ? `Fecha: ${data.dashboard.fecha_pago}` : 'Sin fecha'}
                 </div>
               </div>
             </div>
 
             {/* Resumen de Cálculos */}
-            {periodoActual.calculos && (
+            {data.calculos && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Percepciones */}
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -338,7 +338,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    {Object.entries(periodoActual.calculos.percepciones || {})
+                    {Object.entries(data.calculos.percepciones || {})
                       .slice(0, 5)
                       .map(([concepto, datos]) => (
                         <div key={concepto} className="flex justify-between items-center">
@@ -354,7 +354,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                     <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
                       <span className="font-bold text-gray-900">Total</span>
                       <span className="text-xl font-bold text-green-600">
-                        {formatCurrency(periodoActual.calculos.totales.total_percepciones)}
+                        {formatCurrency(data.calculos.totales.total_percepciones)}
                       </span>
                     </div>
                   </div>
@@ -372,7 +372,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    {Object.entries(periodoActual.calculos.deducciones || {})
+                    {Object.entries(data.calculos.deducciones || {})
                       .slice(0, 5)
                       .map(([concepto, datos]) => (
                         <div key={concepto} className="flex justify-between items-center">
@@ -388,7 +388,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                     <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
                       <span className="font-bold text-gray-900">Total</span>
                       <span className="text-xl font-bold text-red-600">
-                        {formatCurrency(periodoActual.calculos.totales.total_deducciones)}
+                        {formatCurrency(data.calculos.totales.total_deducciones)}
                       </span>
                     </div>
                   </div>
@@ -397,7 +397,7 @@ export default function Modulo06({ data }: Modulo06Props) {
             )}
 
             {/* Gráfica de Nómina Neta */}
-            {periodoActual.calculos && (
+            {data.calculos && (
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Composición de Nómina</h3>
                 <div className="h-64">
@@ -407,9 +407,9 @@ export default function Modulo06({ data }: Modulo06Props) {
                       datasets: [
                         {
                           data: [
-                            periodoActual.calculos.totales.total_percepciones,
-                            periodoActual.calculos.totales.total_deducciones,
-                            periodoActual.calculos.totales.total_neto,
+                            data.calculos.totales.total_percepciones,
+                            data.calculos.totales.total_deducciones,
+                            data.calculos.totales.total_neto,
                           ],
                           backgroundColor: [
                             'rgba(34, 197, 94, 0.8)',
@@ -455,22 +455,22 @@ export default function Modulo06({ data }: Modulo06Props) {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Lista de Empleados ({periodoActual.empleados.length})
+                    Lista de Empleados ({data.empleados.length})
                   </h3>
                   <p className="text-sm text-gray-600">Detalle de nómina por empleado</p>
                 </div>
-                {periodoActual.empleados.length > 10 && (
+                {data.empleados.length > 10 && (
                   <button
                     onClick={() => setShowAllEmpleados(!showAllEmpleados)}
                     className="px-4 py-2 text-sm font-medium text-bechapra-primary border border-bechapra-primary rounded-lg hover:bg-bechapra-light-2 transition-colors"
                   >
-                    {showAllEmpleados ? 'Ver menos' : `Ver todos (${periodoActual.empleados.length})`}
+                    {showAllEmpleados ? 'Ver menos' : `Ver todos (${data.empleados.length})`}
                   </button>
                 )}
               </div>
 
               <div className="space-y-2">
-                {(showAllEmpleados ? periodoActual.empleados : periodoActual.empleados.slice(0, 10)).map(
+                {(showAllEmpleados ? data.empleados : data.empleados.slice(0, 10)).map(
                   (empleado, index) => (
                     <div
                       key={index}
@@ -623,7 +623,7 @@ export default function Modulo06({ data }: Modulo06Props) {
         )}
 
         {/* TAB: PERCEPCIONES */}
-        {activeTab === 'percepciones' && periodoActual.percepciones_detalle && (
+        {activeTab === 'percepciones' && data.percepciones_detalle && (
           <div className="space-y-6">
             {/* KPIs de Percepciones */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -633,7 +633,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">Total Percepciones</div>
                     <div className="text-2xl font-bold text-green-600">
-                      {formatCurrency(periodoActual.resumen?.total_percepciones || 0)}
+                      {formatCurrency(data.resumen?.total_percepciones || 0)}
                     </div>
                   </div>
                 </div>
@@ -645,7 +645,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">Conceptos Activos</div>
                     <div className="text-2xl font-bold text-blue-600">
-                      {Object.keys(periodoActual.percepciones_detalle).length}
+                      {Object.keys(data.percepciones_detalle).length}
                     </div>
                   </div>
                 </div>
@@ -657,7 +657,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">Promedio por Empleado</div>
                     <div className="text-2xl font-bold text-purple-600">
-                      {formatCurrency((periodoActual.resumen?.total_percepciones || 0) / (periodoActual.resumen?.num_empleados || 1))}
+                      {formatCurrency((data.resumen?.total_percepciones || 0) / (data.resumen?.num_empleados || 1))}
                     </div>
                   </div>
                 </div>
@@ -669,7 +669,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">Empleados Afectados</div>
                     <div className="text-2xl font-bold text-orange-600">
-                      {periodoActual.resumen?.num_empleados || 0}
+                      {data.resumen?.num_empleados || 0}
                     </div>
                   </div>
                 </div>
@@ -706,7 +706,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                     </tr>
                   </thead>
                   <tbody>
-                    {Object.entries(periodoActual.percepciones_detalle)
+                    {Object.entries(data.percepciones_detalle)
                       .sort(([, a], [, b]) => b.total - a.total)
                       .map(([codigo, datos]) => (
                         <tr key={codigo} className="border-b border-gray-100 hover:bg-gray-50">
@@ -722,7 +722,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                             {formatCurrency(datos.total / datos.empleados)}
                           </td>
                           <td className="py-3 px-4 text-sm text-right text-gray-600">
-                            {((datos.total / (periodoActual.resumen?.total_percepciones || 1)) * 100).toFixed(2)}%
+                            {((datos.total / (data.resumen?.total_percepciones || 1)) * 100).toFixed(2)}%
                           </td>
                         </tr>
                       ))}
@@ -731,10 +731,10 @@ export default function Modulo06({ data }: Modulo06Props) {
                     <tr className="border-t-2 border-gray-300 font-bold">
                       <td colSpan={3} className="py-3 px-4 text-sm text-gray-900">TOTAL</td>
                       <td className="py-3 px-4 text-sm text-right text-green-600">
-                        {formatCurrency(periodoActual.resumen?.total_percepciones || 0)}
+                        {formatCurrency(data.resumen?.total_percepciones || 0)}
                       </td>
                       <td className="py-3 px-4 text-sm text-right text-gray-600">
-                        {formatCurrency((periodoActual.resumen?.total_percepciones || 0) / (periodoActual.resumen?.num_empleados || 1))}
+                        {formatCurrency((data.resumen?.total_percepciones || 0) / (data.resumen?.num_empleados || 1))}
                       </td>
                       <td className="py-3 px-4 text-sm text-right text-gray-600">100.00%</td>
                     </tr>
@@ -751,10 +751,10 @@ export default function Modulo06({ data }: Modulo06Props) {
               <div className="h-80">
                 <Doughnut
                   data={{
-                    labels: Object.values(periodoActual.percepciones_detalle).map((p) => `${p.codigo} - ${p.nombre}`),
+                    labels: Object.values(data.percepciones_detalle).map((p) => `${p.codigo} - ${p.nombre}`),
                     datasets: [
                       {
-                        data: Object.values(periodoActual.percepciones_detalle).map((p) => p.total),
+                        data: Object.values(data.percepciones_detalle).map((p) => p.total),
                         backgroundColor: [
                           'rgba(34, 197, 94, 0.8)',
                           'rgba(59, 130, 246, 0.8)',
@@ -790,7 +790,7 @@ export default function Modulo06({ data }: Modulo06Props) {
         )}
 
         {/* TAB: DEDUCCIONES */}
-        {activeTab === 'deducciones' && periodoActual.deducciones_detalle && (
+        {activeTab === 'deducciones' && data.deducciones_detalle && (
           <div className="space-y-6">
             {/* KPIs de Deducciones */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -800,7 +800,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">Total Deducciones</div>
                     <div className="text-2xl font-bold text-red-600">
-                      {formatCurrency(periodoActual.resumen?.total_deducciones || 0)}
+                      {formatCurrency(data.resumen?.total_deducciones || 0)}
                     </div>
                   </div>
                 </div>
@@ -812,7 +812,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">ISR Retenido</div>
                     <div className="text-2xl font-bold text-orange-600">
-                      {formatCurrency(periodoActual.resumen?.isr_retenido || 0)}
+                      {formatCurrency(data.resumen?.isr_retenido || 0)}
                     </div>
                   </div>
                 </div>
@@ -824,7 +824,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">IMSS Obrero</div>
                     <div className="text-2xl font-bold text-blue-600">
-                      {formatCurrency(periodoActual.resumen?.imss_obrero || 0)}
+                      {formatCurrency(data.resumen?.imss_obrero || 0)}
                     </div>
                   </div>
                 </div>
@@ -836,7 +836,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">INFONAVIT + FONACOT</div>
                     <div className="text-2xl font-bold text-purple-600">
-                      {formatCurrency((periodoActual.resumen?.infonavit_empleados || 0) + (periodoActual.resumen?.fonacot_empleados || 0))}
+                      {formatCurrency((data.resumen?.infonavit_empleados || 0) + (data.resumen?.fonacot_empleados || 0))}
                     </div>
                   </div>
                 </div>
@@ -873,7 +873,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                     </tr>
                   </thead>
                   <tbody>
-                    {Object.entries(periodoActual.deducciones_detalle)
+                    {Object.entries(data.deducciones_detalle)
                       .sort(([, a], [, b]) => b.total - a.total)
                       .map(([codigo, datos]) => (
                         <tr key={codigo} className="border-b border-gray-100 hover:bg-gray-50">
@@ -889,7 +889,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                             {formatCurrency(datos.total / datos.empleados)}
                           </td>
                           <td className="py-3 px-4 text-sm text-right text-gray-600">
-                            {((datos.total / (periodoActual.resumen?.total_deducciones || 1)) * 100).toFixed(2)}%
+                            {((datos.total / (data.resumen?.total_deducciones || 1)) * 100).toFixed(2)}%
                           </td>
                         </tr>
                       ))}
@@ -898,10 +898,10 @@ export default function Modulo06({ data }: Modulo06Props) {
                     <tr className="border-t-2 border-gray-300 font-bold">
                       <td colSpan={3} className="py-3 px-4 text-sm text-gray-900">TOTAL</td>
                       <td className="py-3 px-4 text-sm text-right text-red-600">
-                        {formatCurrency(periodoActual.resumen?.total_deducciones || 0)}
+                        {formatCurrency(data.resumen?.total_deducciones || 0)}
                       </td>
                       <td className="py-3 px-4 text-sm text-right text-gray-600">
-                        {formatCurrency((periodoActual.resumen?.total_deducciones || 0) / (periodoActual.resumen?.num_empleados || 1))}
+                        {formatCurrency((data.resumen?.total_deducciones || 0) / (data.resumen?.num_empleados || 1))}
                       </td>
                       <td className="py-3 px-4 text-sm text-right text-gray-600">100.00%</td>
                     </tr>
@@ -918,10 +918,10 @@ export default function Modulo06({ data }: Modulo06Props) {
               <div className="h-80">
                 <Doughnut
                   data={{
-                    labels: Object.values(periodoActual.deducciones_detalle).map((d) => `${d.codigo} - ${d.nombre}`),
+                    labels: Object.values(data.deducciones_detalle).map((d) => `${d.codigo} - ${d.nombre}`),
                     datasets: [
                       {
-                        data: Object.values(periodoActual.deducciones_detalle).map((d) => d.total),
+                        data: Object.values(data.deducciones_detalle).map((d) => d.total),
                         backgroundColor: [
                           'rgba(239, 68, 68, 0.8)',
                           'rgba(249, 115, 22, 0.8)',
@@ -957,7 +957,7 @@ export default function Modulo06({ data }: Modulo06Props) {
         )}
 
         {/* TAB: CARGA PATRONAL (Provisiones 8XX) */}
-        {activeTab === 'calculos' && periodoActual.resumen?.carga_patronal && (
+        {activeTab === 'calculos' && data.resumen?.carga_patronal && (
           <div className="space-y-6">
             {/* KPIs de Carga Patronal */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -967,7 +967,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">IMSS Patronal</div>
                     <div className="text-2xl font-bold text-blue-600">
-                      {formatCurrency(periodoActual.resumen.carga_patronal.imss_patronal)}
+                      {formatCurrency(data.resumen.carga_patronal.imss_patronal)}
                     </div>
                   </div>
                 </div>
@@ -979,7 +979,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">SAR</div>
                     <div className="text-2xl font-bold text-green-600">
-                      {formatCurrency(periodoActual.resumen.carga_patronal.sar)}
+                      {formatCurrency(data.resumen.carga_patronal.sar)}
                     </div>
                   </div>
                 </div>
@@ -991,7 +991,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">INFONAVIT Patronal</div>
                     <div className="text-2xl font-bold text-purple-600">
-                      {formatCurrency(periodoActual.resumen.carga_patronal.infonavit_patronal)}
+                      {formatCurrency(data.resumen.carga_patronal.infonavit_patronal)}
                     </div>
                   </div>
                 </div>
@@ -1003,7 +1003,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">ISN</div>
                     <div className="text-2xl font-bold text-orange-600">
-                      {formatCurrency(periodoActual.resumen.carga_patronal.isn)}
+                      {formatCurrency(data.resumen.carga_patronal.isn)}
                     </div>
                   </div>
                 </div>
@@ -1015,7 +1015,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-700 font-medium">TOTAL CARGA PATRONAL</div>
                     <div className="text-2xl font-bold text-blue-700">
-                      {formatCurrency(periodoActual.resumen.carga_patronal.total)}
+                      {formatCurrency(data.resumen.carga_patronal.total)}
                     </div>
                   </div>
                 </div>
@@ -1027,32 +1027,32 @@ export default function Modulo06({ data }: Modulo06Props) {
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h4 className="text-sm font-medium text-gray-600 mb-2">Neto a Empleados</h4>
                 <div className="text-3xl font-bold text-green-600">
-                  {formatCurrency(periodoActual.resumen?.total_neto || 0)}
+                  {formatCurrency(data.resumen?.total_neto || 0)}
                 </div>
-                <div className="text-xs text-gray-500 mt-1">Dispersado a {periodoActual.resumen?.num_empleados} empleados</div>
+                <div className="text-xs text-gray-500 mt-1">Dispersado a {data.resumen?.num_empleados} empleados</div>
               </div>
 
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h4 className="text-sm font-medium text-gray-600 mb-2">Carga Patronal Total</h4>
                 <div className="text-3xl font-bold text-blue-600">
-                  {formatCurrency(periodoActual.resumen.carga_patronal.total)}
+                  {formatCurrency(data.resumen.carga_patronal.total)}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  {((periodoActual.resumen.carga_patronal.total / (periodoActual.resumen?.total_neto || 1)) * 100).toFixed(2)}% del neto
+                  {((data.resumen.carga_patronal.total / (data.resumen?.total_neto || 1)) * 100).toFixed(2)}% del neto
                 </div>
               </div>
 
               <div className="bg-white rounded-lg border border-gray-200 p-6 bg-gradient-to-r from-purple-50 to-purple-100">
                 <h4 className="text-sm font-medium text-purple-700 mb-2">Costo Total de Nómina</h4>
                 <div className="text-3xl font-bold text-purple-700">
-                  {formatCurrency((periodoActual.resumen?.total_neto || 0) + periodoActual.resumen.carga_patronal.total)}
+                  {formatCurrency((data.resumen?.total_neto || 0) + data.resumen.carga_patronal.total)}
                 </div>
                 <div className="text-xs text-purple-600 mt-1">Neto + Carga Patronal</div>
               </div>
             </div>
 
             {/* Tabla detallada de provisiones */}
-            {periodoActual.provisiones_patronales && Object.keys(periodoActual.provisiones_patronales).length > 0 && (
+            {data.provisiones_patronales && Object.keys(data.provisiones_patronales).length > 0 && (
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Detalle de Provisiones Patronales (Códigos 8XX)
@@ -1069,7 +1069,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                       </tr>
                     </thead>
                     <tbody>
-                      {Object.entries(periodoActual.provisiones_patronales)
+                      {Object.entries(data.provisiones_patronales)
                         .sort(([, a], [, b]) => b.total - a.total)
                         .map(([codigo, datos]) => (
                           <tr key={codigo} className="border-b border-gray-100 hover:bg-gray-50">
@@ -1090,7 +1090,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                               {formatCurrency(datos.total)}
                             </td>
                             <td className="py-3 px-4 text-sm text-right text-gray-600">
-                              {((datos.total / periodoActual.resumen.carga_patronal.total) * 100).toFixed(2)}%
+                              {((datos.total / data.resumen.carga_patronal.total) * 100).toFixed(2)}%
                             </td>
                           </tr>
                         ))}
@@ -1099,7 +1099,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                       <tr className="border-t-2 border-gray-300 font-bold">
                         <td colSpan={3} className="py-3 px-4 text-sm text-gray-900">TOTAL CARGA PATRONAL</td>
                         <td className="py-3 px-4 text-sm text-right text-blue-700">
-                          {formatCurrency(periodoActual.resumen.carga_patronal.total)}
+                          {formatCurrency(data.resumen.carga_patronal.total)}
                         </td>
                         <td className="py-3 px-4 text-sm text-right text-gray-600">100.00%</td>
                       </tr>
@@ -1121,10 +1121,10 @@ export default function Modulo06({ data }: Modulo06Props) {
                     datasets: [
                       {
                         data: [
-                          periodoActual.resumen.carga_patronal.imss_patronal,
-                          periodoActual.resumen.carga_patronal.sar,
-                          periodoActual.resumen.carga_patronal.infonavit_patronal,
-                          periodoActual.resumen.carga_patronal.isn,
+                          data.resumen.carga_patronal.imss_patronal,
+                          data.resumen.carga_patronal.sar,
+                          data.resumen.carga_patronal.infonavit_patronal,
+                          data.resumen.carga_patronal.isn,
                         ],
                         backgroundColor: [
                           'rgba(59, 130, 246, 0.8)',
@@ -1159,7 +1159,7 @@ export default function Modulo06({ data }: Modulo06Props) {
         )}
 
         {/* TAB: INCIDENCIAS */}
-        {activeTab === 'incidencias' && periodoActual.incidencias && (
+        {activeTab === 'incidencias' && data.incidencias && (
           <div className="space-y-6">
             {/* KPIs de Incidencias */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1169,13 +1169,13 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">Total Incidencias</div>
                     <div className="text-2xl font-bold text-gray-900">
-                      {formatNumber(periodoActual.incidencias.total_incidencias)}
+                      {formatNumber(data.incidencias.total_incidencias)}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {Object.entries(periodoActual.incidencias.por_tipo || {})
+              {Object.entries(data.incidencias.por_tipo || {})
                 .slice(0, 2)
                 .map(([tipo, cantidad]) => (
                   <div key={tipo} className="bg-white rounded-lg border border-gray-200 p-6">
@@ -1193,7 +1193,7 @@ export default function Modulo06({ data }: Modulo06Props) {
             </div>
 
             {/* Tabla de Incidencias */}
-            {periodoActual.incidencias.detalle && periodoActual.incidencias.detalle.length > 0 && (
+            {data.incidencias.detalle && data.incidencias.detalle.length > 0 && (
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Detalle de Incidencias
@@ -1223,7 +1223,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                       </tr>
                     </thead>
                     <tbody>
-                      {periodoActual.incidencias.detalle.map((inc, index) => (
+                      {data.incidencias.detalle.map((inc, index) => (
                         <tr key={index} className="border-b border-gray-100">
                           <td className="py-3 px-4 text-sm text-gray-900">{inc.empleado}</td>
                           <td className="py-3 px-4 text-sm text-gray-900">
@@ -1250,7 +1250,7 @@ export default function Modulo06({ data }: Modulo06Props) {
         )}
 
         {/* TAB: CFDI */}
-        {activeTab === 'cfdi' && periodoActual.cfdi && (
+        {activeTab === 'cfdi' && data.cfdi && (
           <div className="space-y-6">
             {/* KPIs CFDI */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -1260,7 +1260,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">Total CFDI</div>
                     <div className="text-2xl font-bold text-gray-900">
-                      {formatNumber(periodoActual.cfdi.total_cfdi)}
+                      {formatNumber(data.cfdi.total_cfdi)}
                     </div>
                   </div>
                 </div>
@@ -1272,7 +1272,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">Timbrados</div>
                     <div className="text-2xl font-bold text-green-600">
-                      {formatNumber(periodoActual.cfdi.timbrados)}
+                      {formatNumber(data.cfdi.timbrados)}
                     </div>
                   </div>
                 </div>
@@ -1284,7 +1284,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">Pendientes</div>
                     <div className="text-2xl font-bold text-yellow-600">
-                      {formatNumber(periodoActual.cfdi.pendientes)}
+                      {formatNumber(data.cfdi.pendientes)}
                     </div>
                   </div>
                 </div>
@@ -1296,7 +1296,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">Errores</div>
                     <div className="text-2xl font-bold text-red-600">
-                      {formatNumber(periodoActual.cfdi.errores)}
+                      {formatNumber(data.cfdi.errores)}
                     </div>
                   </div>
                 </div>
@@ -1304,30 +1304,30 @@ export default function Modulo06({ data }: Modulo06Props) {
             </div>
 
             {/* Validación CFDI */}
-            {periodoActual.cfdi.validacion && (
+            {data.cfdi.validacion && (
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Validación CFDI</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <div className="text-sm text-gray-600">Total Validados</div>
                     <div className="text-xl font-bold text-gray-900">
-                      {formatNumber(periodoActual.cfdi.validacion.total_validados)}
+                      {formatNumber(data.cfdi.validacion.total_validados)}
                     </div>
                   </div>
                   <div>
                     <div className="text-sm text-gray-600">Coinciden</div>
                     <div className="text-xl font-bold text-green-600">
-                      {formatNumber(periodoActual.cfdi.validacion.coinciden)}
+                      {formatNumber(data.cfdi.validacion.coinciden)}
                     </div>
                   </div>
                 </div>
 
-                {periodoActual.cfdi.validacion.diferencias &&
-                  periodoActual.cfdi.validacion.diferencias.length > 0 && (
+                {data.cfdi.validacion.diferencias &&
+                  data.cfdi.validacion.diferencias.length > 0 && (
                     <div>
                       <h4 className="text-sm font-semibold text-gray-900 mb-2">Diferencias</h4>
                       <div className="space-y-2">
-                        {periodoActual.cfdi.validacion.diferencias.map((dif, index) => (
+                        {data.cfdi.validacion.diferencias.map((dif, index) => (
                           <div
                             key={index}
                             className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border border-yellow-200"
@@ -1354,7 +1354,7 @@ export default function Modulo06({ data }: Modulo06Props) {
             )}
 
             {/* Detalle CFDI */}
-            {periodoActual.cfdi.detalle && periodoActual.cfdi.detalle.length > 0 && (
+            {data.cfdi.detalle && data.cfdi.detalle.length > 0 && (
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Detalle de CFDI</h3>
                 <div className="overflow-x-auto">
@@ -1379,7 +1379,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                       </tr>
                     </thead>
                     <tbody>
-                      {periodoActual.cfdi.detalle.slice(0, 20).map((cfdi, index) => (
+                      {data.cfdi.detalle.slice(0, 20).map((cfdi, index) => (
                         <tr key={index} className="border-b border-gray-100">
                           <td className="py-3 px-4 text-sm text-gray-900">{cfdi.empleado}</td>
                           <td className="py-3 px-4 text-sm text-gray-600 font-mono text-xs">
@@ -1421,7 +1421,7 @@ export default function Modulo06({ data }: Modulo06Props) {
         )}
 
         {/* TAB: DISPERSIÓN */}
-        {activeTab === 'dispersion' && periodoActual.dispersion && (
+        {activeTab === 'dispersion' && data.dispersion && (
           <div className="space-y-6">
             {/* Info de Dispersión */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -1431,29 +1431,29 @@ export default function Modulo06({ data }: Modulo06Props) {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <div className="text-sm text-gray-600">Banco</div>
-                  <div className="text-base font-medium text-gray-900">{periodoActual.dispersion.banco}</div>
+                  <div className="text-base font-medium text-gray-900">{data.dispersion.banco}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-600">Cuenta</div>
                   <div className="text-base font-medium text-gray-900">
-                    {periodoActual.dispersion.cuenta}
+                    {data.dispersion.cuenta}
                   </div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-600">Fecha</div>
-                  <div className="text-base font-medium text-gray-900">{periodoActual.dispersion.fecha}</div>
+                  <div className="text-base font-medium text-gray-900">{data.dispersion.fecha}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-600">Total Dispersado</div>
                   <div className="text-base font-bold text-gray-900">
-                    {formatCurrency(periodoActual.dispersion.total_dispersado)}
+                    {formatCurrency(data.dispersion.total_dispersado)}
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Resumen de Dispersión */}
-            {periodoActual.dispersion.resumen && (
+            {data.dispersion.resumen && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
                   <div className="flex items-center gap-3">
@@ -1461,10 +1461,10 @@ export default function Modulo06({ data }: Modulo06Props) {
                     <div>
                       <div className="text-sm text-gray-600">Exitosos</div>
                       <div className="text-2xl font-bold text-green-600">
-                        {formatNumber(periodoActual.dispersion.resumen.exitosos)}
+                        {formatNumber(data.dispersion.resumen.exitosos)}
                       </div>
                       <div className="text-xs text-gray-600">
-                        {formatCurrency(periodoActual.dispersion.resumen.monto_exitoso)}
+                        {formatCurrency(data.dispersion.resumen.monto_exitoso)}
                       </div>
                     </div>
                   </div>
@@ -1476,10 +1476,10 @@ export default function Modulo06({ data }: Modulo06Props) {
                     <div>
                       <div className="text-sm text-gray-600">Pendientes</div>
                       <div className="text-2xl font-bold text-yellow-600">
-                        {formatNumber(periodoActual.dispersion.resumen.pendientes)}
+                        {formatNumber(data.dispersion.resumen.pendientes)}
                       </div>
                       <div className="text-xs text-gray-600">
-                        {formatCurrency(periodoActual.dispersion.resumen.monto_pendiente)}
+                        {formatCurrency(data.dispersion.resumen.monto_pendiente)}
                       </div>
                     </div>
                   </div>
@@ -1491,10 +1491,10 @@ export default function Modulo06({ data }: Modulo06Props) {
                     <div>
                       <div className="text-sm text-gray-600">Rechazados</div>
                       <div className="text-2xl font-bold text-red-600">
-                        {formatNumber(periodoActual.dispersion.resumen.rechazados)}
+                        {formatNumber(data.dispersion.resumen.rechazados)}
                       </div>
                       <div className="text-xs text-gray-600">
-                        {formatCurrency(periodoActual.dispersion.resumen.monto_rechazado)}
+                        {formatCurrency(data.dispersion.resumen.monto_rechazado)}
                       </div>
                     </div>
                   </div>
@@ -1503,7 +1503,7 @@ export default function Modulo06({ data }: Modulo06Props) {
             )}
 
             {/* Detalle de Pagos */}
-            {periodoActual.dispersion.detalle && periodoActual.dispersion.detalle.length > 0 && (
+            {data.dispersion.detalle && data.dispersion.detalle.length > 0 && (
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Detalle de Pagos</h3>
                 <div className="overflow-x-auto">
@@ -1531,7 +1531,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                       </tr>
                     </thead>
                     <tbody>
-                      {periodoActual.dispersion.detalle.map((pago, index) => (
+                      {data.dispersion.detalle.map((pago, index) => (
                         <tr key={index} className="border-b border-gray-100">
                           <td className="py-3 px-4 text-sm text-gray-900">{pago.empleado}</td>
                           <td className="py-3 px-4 text-sm text-gray-900">{pago.banco}</td>
@@ -1576,7 +1576,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">Validaciones OK</div>
                     <div className="text-3xl font-bold text-green-600">
-                      {(periodoActual.validaciones || []).filter(v => v.tipo === 'ok').length}
+                      {(data.validaciones || []).filter(v => v.tipo === 'ok').length}
                     </div>
                   </div>
                 </div>
@@ -1588,7 +1588,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">Advertencias</div>
                     <div className="text-3xl font-bold text-yellow-600">
-                      {(periodoActual.validaciones || []).filter(v => v.tipo === 'warning').length}
+                      {(data.validaciones || []).filter(v => v.tipo === 'warning').length}
                     </div>
                   </div>
                 </div>
@@ -1600,7 +1600,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                   <div>
                     <div className="text-sm text-gray-600">Errores</div>
                     <div className="text-3xl font-bold text-red-600">
-                      {(periodoActual.validaciones || []).filter(v => v.tipo === 'error').length}
+                      {(data.validaciones || []).filter(v => v.tipo === 'error').length}
                     </div>
                   </div>
                 </div>
@@ -1608,13 +1608,13 @@ export default function Modulo06({ data }: Modulo06Props) {
             </div>
 
             {/* Lista de Validaciones */}
-            {periodoActual.validaciones && periodoActual.validaciones.length > 0 ? (
+            {data.validaciones && data.validaciones.length > 0 ? (
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Detalle de Validaciones
                 </h3>
                 <div className="space-y-3">
-                  {periodoActual.validaciones.map((validacion, index) => (
+                  {data.validaciones.map((validacion, index) => (
                     <div
                       key={index}
                       className={`flex items-start gap-3 p-4 rounded-lg border ${
@@ -1755,40 +1755,40 @@ export default function Modulo06({ data }: Modulo06Props) {
         )}
 
         {/* TAB: HISTÓRICO */}
-        {activeTab === 'historico' && periodoActual.historico && (
+        {activeTab === 'historico' && data.historico && (
           <div className="space-y-6">
             {/* Estadísticas Históricas */}
-            {periodoActual.historico.estadisticas && (
+            {data.historico.estadisticas && (
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
                   <div className="text-sm text-gray-600 mb-1">Promedio Mensual</div>
                   <div className="text-xl font-bold text-gray-900">
-                    {formatCurrency(periodoActual.historico.estadisticas.promedio_mensual)}
+                    {formatCurrency(data.historico.estadisticas.promedio_mensual)}
                   </div>
                 </div>
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
                   <div className="text-sm text-gray-600 mb-1">Desviación Estándar</div>
                   <div className="text-xl font-bold text-gray-900">
-                    {formatCurrency(periodoActual.historico.estadisticas.desviacion_estandar)}
+                    {formatCurrency(data.historico.estadisticas.desviacion_estandar)}
                   </div>
                 </div>
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
                   <div className="text-sm text-gray-600 mb-1">Crecimiento Anual</div>
                   <div className="text-xl font-bold text-green-600">
-                    {periodoActual.historico.estadisticas.crecimiento_anual.toFixed(1)}%
+                    {data.historico.estadisticas.crecimiento_anual.toFixed(1)}%
                   </div>
                 </div>
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
                   <div className="text-sm text-gray-600 mb-1">Rotación Empleados</div>
                   <div className="text-xl font-bold text-gray-900">
-                    {periodoActual.historico.estadisticas.rotacion_empleados.toFixed(1)}%
+                    {data.historico.estadisticas.rotacion_empleados.toFixed(1)}%
                   </div>
                 </div>
               </div>
             )}
 
             {/* Gráfica de Tendencias */}
-            {periodoActual.historico.tendencias && (
+            {data.historico.tendencias && (
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Tendencia de Nómina
@@ -1796,11 +1796,11 @@ export default function Modulo06({ data }: Modulo06Props) {
                 <div className="h-80">
                   <Line
                     data={{
-                      labels: periodoActual.historico.tendencias.meses,
+                      labels: data.historico.tendencias.meses,
                       datasets: [
                         {
                           label: 'Nómina Total',
-                          data: periodoActual.historico.tendencias.nomina_total,
+                          data: data.historico.tendencias.nomina_total,
                           borderColor: 'rgb(59, 130, 246)',
                           backgroundColor: 'rgba(59, 130, 246, 0.1)',
                           tension: 0.4,
@@ -1808,7 +1808,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                         },
                         {
                           label: 'Promedio por Empleado',
-                          data: periodoActual.historico.tendencias.promedio_empleado,
+                          data: data.historico.tendencias.promedio_empleado,
                           borderColor: 'rgb(34, 197, 94)',
                           backgroundColor: 'rgba(34, 197, 94, 0.1)',
                           tension: 0.4,
@@ -1848,7 +1848,7 @@ export default function Modulo06({ data }: Modulo06Props) {
             )}
 
             {/* Tabla de Periodos */}
-            {periodoActual.historico.periodos && periodoActual.historico.periodos.length > 0 && (
+            {data.historico.periodos && data.historico.periodos.length > 0 && (
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Histórico de Periodos</h3>
                 <div className="overflow-x-auto">
@@ -1876,7 +1876,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                       </tr>
                     </thead>
                     <tbody>
-                      {periodoActual.historico.periodos.map((periodo, index) => (
+                      {data.historico.periodos.map((periodo, index) => (
                         <tr key={index} className="border-b border-gray-100">
                           <td className="py-3 px-4 text-sm text-gray-900">{periodo.periodo}</td>
                           <td className="py-3 px-4 text-sm text-gray-900">

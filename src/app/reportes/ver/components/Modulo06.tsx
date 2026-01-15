@@ -101,8 +101,6 @@ export default function Modulo06({ data }: Modulo06Props) {
     { id: 'incidencias', label: 'Incidencias', icon: Calendar },
     { id: 'cfdi', label: 'CFDI', icon: FileCheck },
     { id: 'dispersion', label: 'Dispersión', icon: CreditCard },
-    { id: 'validaciones', label: 'Validaciones', icon: CheckCircle2 },
-    { id: 'historico', label: 'Histórico', icon: TrendingUp },
   ]
 
   const tipoNominaLabel = {
@@ -712,7 +710,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                       .sort(([, a], [, b]) => b.total - a.total)
                       .map(([codigo, datos]) => (
                         <tr key={codigo} className="border-b border-gray-100 hover:bg-gray-50">
-                          <td className="py-3 px-4 text-sm font-mono text-gray-900">{datos.codigo}</td>
+                          <td className="py-3 px-4 text-sm font-mono text-gray-900">{datos.codigo} - {datos.nombre}</td>
                           <td className="py-3 px-4 text-sm text-gray-900">{datos.nombre}</td>
                           <td className="py-3 px-4 text-sm text-right text-gray-900">
                             {datos.empleados}
@@ -879,7 +877,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                       .sort(([, a], [, b]) => b.total - a.total)
                       .map(([codigo, datos]) => (
                         <tr key={codigo} className="border-b border-gray-100 hover:bg-gray-50">
-                          <td className="py-3 px-4 text-sm font-mono text-gray-900">{datos.codigo}</td>
+                          <td className="py-3 px-4 text-sm font-mono text-gray-900">{datos.codigo} - {datos.nombre}</td>
                           <td className="py-3 px-4 text-sm text-gray-900">{datos.nombre}</td>
                           <td className="py-3 px-4 text-sm text-right text-gray-900">
                             {datos.empleados}
@@ -1512,16 +1510,10 @@ export default function Modulo06({ data }: Modulo06Props) {
                           Empleado
                         </th>
                         <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">
-                          Banco
-                        </th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">
                           Cuenta
                         </th>
                         <th className="text-right py-3 px-4 text-sm font-semibold text-gray-900">
                           Monto
-                        </th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">
-                          Referencia
                         </th>
                         <th className="text-center py-3 px-4 text-sm font-semibold text-gray-900">
                           Estado
@@ -1563,7 +1555,8 @@ export default function Modulo06({ data }: Modulo06Props) {
           </div>
         )}
 
-        {/* TAB: VALIDACIONES */}
+
+        /* {/* TAB: VALIDACIONES */}
         {activeTab === 'validaciones' && (
           <div className="space-y-6">
             {/* Resumen de Validaciones */}
@@ -1898,9 +1891,10 @@ export default function Modulo06({ data }: Modulo06Props) {
                   </table>
                 </div>
               </div>
-            )}
+            )} 
           </div>
-        )}
+        )}*/
+        
       </div>
     </div>
   )

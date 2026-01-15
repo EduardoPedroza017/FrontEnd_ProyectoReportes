@@ -550,7 +550,6 @@ export interface IncidenciaDetalle {
   fecha: string
   dias: number
   monto: number
-  descripcion: string
 }
 
 // CFDI

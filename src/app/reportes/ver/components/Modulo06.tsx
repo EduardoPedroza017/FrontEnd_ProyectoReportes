@@ -1219,28 +1219,24 @@ export default function Modulo06({ data }: Modulo06Props) {
                         <th className="text-right py-3 px-4 text-sm font-semibold text-gray-900">
                           Monto
                         </th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">
-                          Descripción
-                        </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {periodoActual.incidencias.detalle.map((inc, index) => (
-                        <tr key={index} className="border-b border-gray-100">
+                      {periodoActual.incidencias.detalle.map((inc, idx) => (
+                        <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
                           <td className="py-3 px-4 text-sm text-gray-900">{inc.empleado}</td>
                           <td className="py-3 px-4 text-sm text-gray-900">
                             <span className="inline-flex px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded">
                               {inc.tipo}
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-sm text-gray-900">{inc.fecha}</td>
+                          <td className="py-3 px-4 text-sm text-gray-900">{inc.fecha || 'N/A'}</td>
                           <td className="py-3 px-4 text-sm text-right text-gray-900">
                             {inc.dias}
                           </td>
                           <td className="py-3 px-4 text-sm text-right font-medium text-gray-900">
                             {formatCurrency(inc.monto)}
                           </td>
-                          <td className="py-3 px-4 text-sm text-gray-600">{inc.descripcion}</td>
                         </tr>
                       ))}
                     </tbody>

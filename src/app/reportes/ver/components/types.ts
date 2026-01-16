@@ -1026,3 +1026,96 @@ export interface TendenciaMensual {
     utilidad: number
   }
 }
+
+
+// ============================================
+// INTERFACES PARA MÓDULO 02: REEMBOLSOS
+// Agregar este código al archivo src/app/reportes/ver/components/types.ts
+// ============================================
+
+export interface Modulo02Data {
+  success: boolean
+  reembolsos: Reembolso[]
+  kpis: KpisReembolsos
+  resumen: ResumenReembolsos
+  por_tipo_gasto: Record<string, TipoGastoStats>
+  por_empleado: Record<string, EmpleadoStats>
+  por_autorizacion: Record<string, AutorizacionStats>
+  por_fecha: Record<string, FechaStats>
+  comprobantes: Comprobante[]
+  alertas: Alerta[]
+  metadatos_correos: MetadatosCorreo[]
+}
+
+export interface Reembolso {
+  id: string
+  nombre: string
+  fecha: string
+  numero_solicitud: string
+  autorizacion: string
+  tipo_gasto: string
+  motivo: string
+  monto: number
+  fuente_correo?: string
+  fecha_correo?: string
+  imagen_fuente?: string
+}
+
+export interface KpisReembolsos {
+  total_reembolsos: number
+  monto_total: number
+  promedio: number
+  tipos_gasto_unicos: number
+  empleados_unicos: number
+  monto_maximo: number
+  monto_minimo: number
+}
+
+export interface ResumenReembolsos {
+  total_reembolsos: number
+  monto_total: number
+  promedio: number
+}
+
+export interface TipoGastoStats {
+  count: number
+  total: number
+  reembolsos: string[]
+}
+
+export interface EmpleadoStats {
+  count: number
+  total: number
+  reembolsos: string[]
+}
+
+export interface AutorizacionStats {
+  count: number
+  total: number
+}
+
+export interface FechaStats {
+  count: number
+  total: number
+}
+
+export interface Comprobante {
+  nombre: string
+  tamano_bytes: number
+  correo_origen: string
+}
+
+export interface Alerta {
+  tipo: string
+  severidad: 'alta' | 'media' | 'baja' | 'info'
+  mensaje: string
+  reembolso_id?: string
+  detalle?: string
+}
+
+export interface MetadatosCorreo {
+  de: string
+  asunto: string
+  fecha: string
+  archivo: string
+}

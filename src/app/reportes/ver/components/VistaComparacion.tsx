@@ -1,9 +1,10 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { ArrowLeftRight, TrendingUp, TrendingDown, Percent, DollarSign, Landmark, Receipt, Users, FileText } from 'lucide-react'
+import { ArrowLeftRight, TrendingUp, TrendingDown, Percent, DollarSign, Landmark, Receipt, Users, FileText, CreditCard } from 'lucide-react'
 import { formatCurrency } from './utils'
 import Modulo01 from './Modulo01'
+import Modulo02 from './Modulo02'
 import Modulo03 from './Modulo03'
 import Modulo05 from './Modulo05'
 import Modulo06 from './Modulo06'
@@ -22,6 +23,7 @@ export default function VistaComparacion({ reporteData }: VistaComparacionProps)
   // Detectar módulos disponibles
   const modulosDisponibles = [
     { id: 'modulo01', nombre: 'Estados de Cuenta', icon: Landmark, data: reporteData.modulo1, component: Modulo01, backend: false },
+    { id: 'modulo02', nombre: 'Reembolsos', icon: CreditCard, data: reporteData.modulo2, component: Modulo02, backend: false },
     { id: 'modulo03', nombre: 'Facturas XML', icon: Receipt, data: reporteData.modulo3, component: Modulo03, backend: false },
     { id: 'modulo05', nombre: 'ISN', icon: DollarSign, data: reporteData.modulo5, component: Modulo05, backend: false },
     { id: 'modulo06', nombre: 'Nómina', icon: Users, data: reporteData.modulo6, component: Modulo06, backend: false },

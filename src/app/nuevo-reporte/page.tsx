@@ -81,12 +81,20 @@ const initialModules: ModuleData[] = [
   {
     id: 2,
     name: 'Módulo 02: Reembolsos',
-    subtitle: 'Gestión de reembolsos',
+    subtitle: 'Análisis de reembolsos empresariales',
     icon: CreditCard,
-    status: 'coming',
-    acceptedTypes: ['.pdf', '.jpg', '.jpeg', '.png'],
-    fileSlots: [],
-    files: []
+    status: 'ready', // o 'disabled' si aún no está listo
+    acceptedTypes: ['.msg'],
+    fileSlots: [
+      {
+        id: 'archivos_msg',
+        label: 'Archivos .msg de Reembolsos',
+        accept: ['.msg'],
+        required: true,
+        multiple: true,
+        description: 'Archivos de Outlook con tablas de reembolsos'
+      }
+    ]
   },
   {
     id: 3,

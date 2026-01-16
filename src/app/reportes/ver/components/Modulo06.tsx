@@ -342,7 +342,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                       .slice(0, 5)
                       .map(([concepto, datos]) => (
                         <div key={concepto} className="flex justify-between items-center">
-                          <span className="text-sm text-gray-700">{concepto}</span>
+                          <span className="text-sm text-gray-700">{datos.codigo} - {datos.nombre}</span>
                           <div className="text-right">
                             <div className="text-sm font-semibold text-gray-900">
                               {formatCurrency(datos.total)}
@@ -376,7 +376,7 @@ export default function Modulo06({ data }: Modulo06Props) {
                       .slice(0, 5)
                       .map(([concepto, datos]) => (
                         <div key={concepto} className="flex justify-between items-center">
-                          <span className="text-sm text-gray-700">{concepto}</span>
+                          <span className="text-sm text-gray-700">{datos.codigo} - {datos.nombre}</span>
                           <div className="text-right">
                             <div className="text-sm font-semibold text-gray-900">
                               {formatCurrency(datos.total)}

@@ -7,6 +7,7 @@ import { DollarSign } from 'lucide-react'
 import Link from 'next/link'
 import VistaComparacion from './components/VistaComparacion'
 import Modulo01 from './components/Modulo01'
+import Modulo02 from './components/Modulo02'
 import Modulo03 from './components/Modulo03'
 import Modulo04 from './components/Modulo04'
 import Modulo05 from './components/Modulo05'
@@ -164,6 +165,7 @@ function VerReporteContent() {
   }
 
   const tieneModulo01 = reporteData?.modulo1?.success
+  const tieneModulo02 = !!reporteData?.modulo2
   const tieneModulo03 = reporteData?.modulo3?.success
   const tieneModulo04 = reporteData?.modulo4?.success
   const tieneModulo05 = reporteData?.modulo5?.success
@@ -261,6 +263,21 @@ function VerReporteContent() {
                     <FileText className={`w-6 h-6 mx-auto mb-2 ${moduloActivoReporte === 'modulo01' ? 'text-blue-600' : 'text-gray-400'}`} />
                     <p className={`text-xs font-medium text-center ${moduloActivoReporte === 'modulo01' ? 'text-blue-700' : 'text-gray-600'}`}>
                       Estados de Cuenta
+                    </p>
+                  </button>
+                )}
+                {tieneModulo02 && (
+                  <button
+                    onClick={() => setModuloActivoReporte('modulo02')}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      moduloActivoReporte === 'modulo02'
+                        ? 'border-blue-500 bg-blue-50 shadow-md'
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <CreditCard className={`w-6 h-6 mx-auto mb-2 ${moduloActivoReporte === 'modulo02' ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <p className={`text-xs font-medium text-center ${moduloActivoReporte === 'modulo02' ? 'text-blue-700' : 'text-gray-600'}`}>
+                      Reembolsos
                     </p>
                   </button>
                 )}
@@ -397,6 +414,10 @@ function VerReporteContent() {
                 </div>
                 <Modulo01 data={reporteData.modulo1} />
               </div>
+            )}
+            
+            {moduloActivoReporte === 'modulo02' && tieneModulo02 && (
+              <Modulo02 data={reporteData.modulo2} />
             )}
 
             {moduloActivoReporte === 'modulo03' && tieneModulo03 && reporteData.modulo3 && (

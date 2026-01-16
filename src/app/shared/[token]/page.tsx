@@ -19,6 +19,7 @@ import {
 
 // Importar componentes de módulos (rutas relativas)
 import Modulo01 from '../../reportes/ver/components/Modulo01'
+import Modulo02 from '../../reportes/ver/components/Modulo02'
 import Modulo03 from '../../reportes/ver/components/Modulo03'
 import Modulo04 from '../../reportes/ver/components/Modulo04'
 import Modulo05 from '../../reportes/ver/components/Modulo05'
@@ -43,7 +44,7 @@ interface ReporteCompartido {
 }
 
 const MODULOS_NOMBRES: Record<string, { nombre: string; descripcion: string; Icon: any }> = {
-  modulo1: { nombre: 'Estados de Cuenta', descripcion: 'Análisis de movimientos bancarios', Icon: DollarSign },
+  modulo1: { nombre: 'Estados de Cuenta', descripcion: 'Análisis de movimientos bancarios', Icon: DollarSign },modulo2: { nombre: 'Reembolsos', descripcion: 'Análisis de reembolsos empresariales', Icon: CreditCard },
   modulo3: { nombre: 'XML - Facturas', descripcion: 'Conciliación de facturas emitidas y recibidas', Icon: Receipt },
   modulo4: { nombre: 'SUA', descripcion: 'Sistema Único de Autodeterminación', Icon: Building2 },
   modulo5: { nombre: 'ISN', descripcion: 'Impuesto Sobre Nómina', Icon: Package },
@@ -147,6 +148,8 @@ export default function ReporteCompartidoPublicoPage({ params }: { params: { tok
     switch (moduloKey) {
       case 'modulo1':
         return <Modulo01 data={datos} />
+      case 'modulo02':
+        return <Modulo02 data={reporte.reporte.datos_reporte.modulo2} />
       case 'modulo3':
         return <Modulo03 data={datos} />
       case 'modulo4':

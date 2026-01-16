@@ -1073,8 +1073,8 @@ export default function Modulo06({ data }: Modulo06Props) {
                         .sort(([, a], [, b]) => b.total - a.total)
                         .map(([codigo, datos]) => (
                           <tr key={codigo} className="border-b border-gray-100 hover:bg-gray-50">
-                            <td className="py-3 px-4 text-sm font-mono text-gray-900">{datos.codigo}</td>
-                            <td className="py-3 px-4 text-sm text-gray-900">{datos.nombre}</td>
+                            <td className="py-3 px-4 text-sm font-mono text-gray-900">{codigo}</td>
+                            <td className="py-3 px-4 text-sm text-gray-900">{datos.nombre || `Provisión ${codigo}`}</td>
                             <td className="py-3 px-4 text-sm">
                               <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${
                                 datos.categoria === 'imss' ? 'bg-blue-100 text-blue-700' :

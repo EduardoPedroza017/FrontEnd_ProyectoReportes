@@ -83,19 +83,21 @@ const initialModules: ModuleData[] = [
     name: 'Módulo 02: Reembolsos',
     subtitle: 'Análisis de reembolsos empresariales',
     icon: CreditCard,
-    status: 'ready', // o 'disabled' si aún no está listo
+    status: 'ready',
     acceptedTypes: ['.msg'],
     fileSlots: [
       {
         id: 'archivos_msg',
         label: 'Archivos .msg de Reembolsos',
-        accept: ['.msg'],
+        accept: ['application/vnd.ms-outlook', '.msg'],
         required: true,
         multiple: true,
-        description: 'Archivos de Outlook con tablas de reembolsos'
+        file: [] 
       }
-    ]
+    ],
+    files: []  // ← AGREGAR ESTA LÍNEA
   },
+
   {
     id: 3,
     name: 'Módulo 03: XML',
@@ -535,6 +537,44 @@ export default function NuevoReportePage() {
             case 1: // Estados de Cuenta
               if (module.files.length > 0) {
                 results.modulo1 = await api.uploadEstadosCuenta(module.files)
+              }
+              break
+
+            case 2: // Reembolsos
+              const msgSlot = module.fileSlots.find(s => s.id === 'archivos_msg')
+              if (msgSlot && msgSlot.file && Array.isArray(msgSlot.file) && msgSlot.file.length > 0) {
+                console.log(`📧 Procesando Módulo 02: ${msgSlot.file.length} archivos .msg`)
+                
+                const formData = new FormData()
+                msgSlot.file.forEach(file => {
+                  formData.append('archivos', file)
+                })
+
+                try {
+                  const response = await fetch('http://localhost:8000/upload-reembolsos', {
+                    method: 'POST',
+                    body: formData
+                  })
+
+                  if (response.ok) {
+                    const data = await response.json()
+                    results.modulo2 = data
+                    console.log('✅ Módulo 02 procesado:', data)
+                  } else {
+                    const errorText = await response.text()
+                    console.error('❌ Error en Módulo 02:', errorText)
+                    results.modulo2 = { 
+                      success: false, 
+                      error: `Error HTTP ${response.status}: ${errorText}` 
+                    }
+                  }
+                } catch (error: any) {
+                  console.error('❌ Error procesando Módulo 02:', error)
+                  results.modulo2 = { 
+                    success: false, 
+                    error: error.message 
+                  }
+                }
               }
               break
               
@@ -1027,6 +1067,8 @@ export default function NuevoReportePage() {
         'text/xml': ['.xml'],
         'image/jpeg': ['.jpg', '.jpeg'],
         'image/png': ['.png'],
+        'application/vnd.ms-outlook': ['.msg'],  // ← AGREGAR ESTA LÍNEA
+        'application/octet-stream': ['.msg'] 
       },
       multiple
     })

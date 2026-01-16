@@ -2,6 +2,7 @@
 
 export interface ReporteData {
   modulo1?: Modulo1Data
+  modulo2?: Modulo02Data
   modulo3?: Modulo3Data
   modulo4?: Modulo04Data
   modulo5?: Modulo05Data

@@ -222,12 +222,14 @@ export function Sidebar() {
         <div className="h-[72px] flex items-center justify-between px-6 border-b border-bechapra-border-light">
           <Link href="/" className="flex items-center gap-3">
             {/* Logo Bechapra */}
-            <div className="w-10 h-10 rounded-bechapra bg-gradient-to-br from-bechapra-primary to-bechapra-primary-dark flex items-center justify-center shadow-button">
-              <span className="text-white font-bold text-xl">B</span>
+            <div>
+              <img src="/images/Favicon_Bausen_01 (1).png" alt="Bechapra" className="h-12" />
             </div>
             <div>
-              <h1 className="font-bold text-lg text-bechapra-text-primary">Bechapra</h1>
-              <p className="text-xs text-bechapra-text-muted -mt-0.5">Análisis Contable</p>
+              <img src="/images/Logo_Horizontal.png" alt="Bechapra" className="h-7" style={{ marginBottom: '0.5rem', marginTop: '0.5rem' }} />
+              <div>
+              <p className="text-xs text-bechapra-text-muted -mt-0.5" style={{marginLeft: "0.5rem"}}>  Análisis Contable</p>
+              </div>
             </div>
           </Link>
 

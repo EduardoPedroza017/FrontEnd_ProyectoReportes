@@ -182,7 +182,7 @@ function VerReporteContent() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link
-                href="/reportes"
+                href="/reportes/historial"
                 className="flex items-center gap-2 text-bechapra-text-secondary hover:text-bechapra-primary transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" />
@@ -415,7 +415,7 @@ function VerReporteContent() {
                 <Modulo01 data={reporteData.modulo1} />
               </div>
             )}
-            
+
             {moduloActivoReporte === 'modulo02' && tieneModulo02 && (
               <Modulo02 data={reporteData.modulo2} />
             )}

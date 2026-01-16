@@ -414,9 +414,26 @@ export default function Modulo01({ data }: Modulo01Props) {
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Columna K (Asociación)
+                  Filtrar por tipo
+                </label>
+                <select
+                  value={selectedL}
+                  onChange={(e) => setSelectedL(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bechapra-primary"
+                >
+                  <option value="todos">Todos</option>
+                  {consolidado.uniqueL.map(l => (
+                    <option key={l} value={l}>{l}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Filtrar por Factura
                 </label>
                 <select
                   value={selectedK}
@@ -430,21 +447,7 @@ export default function Modulo01({ data }: Modulo01Props) {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Columna L (Tipo)
-                </label>
-                <select
-                  value={selectedL}
-                  onChange={(e) => setSelectedL(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bechapra-primary"
-                >
-                  <option value="todos">Todos</option>
-                  {consolidado.uniqueL.map(l => (
-                    <option key={l} value={l}>{l}</option>
-                  ))}
-                </select>
-              </div>
+              
             </div>
 
             <div className="bg-white rounded-lg border border-bechapra-border p-4 mb-4">
@@ -460,8 +463,8 @@ export default function Modulo01({ data }: Modulo01Props) {
                     <th className="px-4 py-3 text-left font-medium">Fecha</th>
                     <th className="px-4 py-3 text-left font-medium">Archivo</th>
                     <th className="px-4 py-3 text-left font-medium">Concepto</th>
-                    <th className="px-4 py-3 text-left font-medium">K (Asociación)</th>
-                    <th className="px-4 py-3 text-left font-medium">L (Tipo)</th>
+                    <th className="px-4 py-3 text-left font-medium">Factura</th>
+                    <th className="px-4 py-3 text-left font-medium">Tipo</th>
                     <th className="px-4 py-3 text-right font-medium">Cargo</th>
                     <th className="px-4 py-3 text-right font-medium">Abono</th>
                     <th className="px-4 py-3 text-right font-medium">Saldo</th>
